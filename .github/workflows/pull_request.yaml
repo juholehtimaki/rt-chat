@@ -1,0 +1,23 @@
+name: Pull Request
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  qa:
+    name: QA
+    uses: ./.github/workflows/_qa.yaml
+    secrets: inherit
+    with:
+      aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+      aws_region: ${{ vars.AWS_REGION }}
