@@ -6,10 +6,15 @@ import {
 	query,
 	serverTimestamp,
 } from "firebase/firestore";
+import { Hash, Plus } from "lucide-react";
 import { type SyntheticEvent, useEffect, useState } from "react";
 import { db } from "../firebase";
 import { useAuthStore } from "../stores/authStore";
 import type { Channel } from "../types";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { ScrollArea } from "./ui/scroll-area";
+import { Separator } from "./ui/separator";
 
 type ChannelListProps = {
 	selectedChannel: Channel | null;
@@ -55,33 +60,47 @@ export const ChannelList = ({
 	};
 
 	return (
-		<div className="channel-list">
-			<h3>Channels</h3>
-			<form onSubmit={handleCreateChannel} className="create-channel-form">
-				<input
-					type="text"
-					placeholder="New channel name"
-					value={newChannelName}
-					onChange={(e) => setNewChannelName(e.target.value)}
-					disabled={creating}
-				/>
-				<button type="submit" disabled={creating || !newChannelName.trim()}>
-					+
-				</button>
-			</form>
-			<ul>
-				{channels.map((channel) => (
-					<li key={channel.id}>
-						<button
-							type="button"
-							className={selectedChannel?.id === channel.id ? "selected" : ""}
+		<div className="flex h-full flex-col">
+			<div className="p-4">
+				<h2 className="mb-2 text-lg font-semibold">Channels</h2>
+				<form onSubmit={handleCreateChannel} className="flex gap-2">
+					<Input
+						type="text"
+						placeholder="New channel"
+						value={newChannelName}
+						onChange={(e) => setNewChannelName(e.target.value)}
+						disabled={creating}
+						className="h-9"
+					/>
+					<Button
+						type="submit"
+						size="icon"
+						variant="secondary"
+						disabled={creating || !newChannelName.trim()}
+						className="h-9 w-9 shrink-0"
+					>
+						<Plus className="h-4 w-4" />
+					</Button>
+				</form>
+			</div>
+			<Separator />
+			<ScrollArea className="flex-1">
+				<div className="p-2">
+					{channels.map((channel) => (
+						<Button
+							key={channel.id}
+							variant={
+								selectedChannel?.id === channel.id ? "secondary" : "ghost"
+							}
+							className="mb-1 w-full justify-start"
 							onClick={() => onSelectChannel(channel)}
 						>
-							# {channel.name}
-						</button>
-					</li>
-				))}
-			</ul>
+							<Hash className="mr-2 h-4 w-4" />
+							{channel.name}
+						</Button>
+					))}
+				</div>
+			</ScrollArea>
 		</div>
 	);
 };

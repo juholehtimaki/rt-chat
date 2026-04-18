@@ -6,10 +6,17 @@ import {
 	query,
 	serverTimestamp,
 } from "firebase/firestore";
+import { Hash, Send } from "lucide-react";
 import { type SyntheticEvent, useEffect, useRef, useState } from "react";
 import { db } from "../firebase";
+import { cn } from "../lib/utils";
 import { useAuthStore } from "../stores/authStore";
 import type { Channel, Message } from "../types";
+import { Avatar, AvatarFallback } from "./ui/avatar";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { ScrollArea } from "./ui/scroll-area";
+import { Separator } from "./ui/separator";
 
 type ChatProps = {
 	channel: Channel;
@@ -33,13 +40,12 @@ export const Chat = ({ channel }: ChatProps) => {
 				...doc.data(),
 			})) as Message[];
 			setMessages(messagesData);
+			setTimeout(() => {
+				messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+			}, 0);
 		});
 		return unsubscribe;
 	}, [channel.id]);
-
-	useEffect(() => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, []);
 
 	const handleSend = async (e: SyntheticEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -60,37 +66,89 @@ export const Chat = ({ channel }: ChatProps) => {
 		}
 	};
 
+	const getInitials = (name: string | undefined) => {
+		if (!name) return "?";
+		return name
+			.split(" ")
+			.map((n) => n[0])
+			.join("")
+			.toUpperCase()
+			.slice(0, 2);
+	};
+
 	return (
-		<div className="chat">
-			<div className="chat-header">
-				<h2># {channel.name}</h2>
+		<div className="flex h-full flex-col">
+			<div className="flex items-center gap-2 border-b px-4 py-3">
+				<Hash className="h-5 w-5 text-muted-foreground" />
+				<h2 className="font-semibold">{channel.name}</h2>
 			</div>
-			<div className="messages">
-				{messages.map((message) => (
-					<div
-						key={message.id}
-						className={`message ${message.userId === user?.uid ? "own" : ""}`}
-					>
-						<span className="message-author">{message.userNickname}</span>
-						<span className="message-text">{message.text}</span>
-						<span className="message-time">
-							{message.createdAt?.toDate().toLocaleTimeString()}
-						</span>
-					</div>
-				))}
-				<div ref={messagesEndRef} />
-			</div>
-			<form onSubmit={handleSend} className="message-form">
-				<input
+
+			<ScrollArea className="flex-1 p-4">
+				<div className="space-y-4">
+					{messages.map((message) => {
+						const isOwn = message.userId === user?.uid;
+						return (
+							<div
+								key={message.id}
+								className={cn("flex gap-3", isOwn && "flex-row-reverse")}
+							>
+								<Avatar className="h-8 w-8 shrink-0">
+									<AvatarFallback className="text-xs">
+										{getInitials(message.userNickname)}
+									</AvatarFallback>
+								</Avatar>
+								<div
+									className={cn(
+										"flex max-w-[70%] flex-col",
+										isOwn && "items-end",
+									)}
+								>
+									<div className="flex items-center gap-2">
+										<span className="text-sm font-medium">
+											{message.userNickname || "Unknown"}
+										</span>
+										<span className="text-xs text-muted-foreground">
+											{message.createdAt
+												? message.createdAt.toDate().toLocaleTimeString([], {
+														hour: "2-digit",
+														minute: "2-digit",
+													})
+												: "..."}
+										</span>
+									</div>
+									<div
+										className={cn(
+											"mt-1 rounded-lg px-3 py-2",
+											isOwn ? "bg-primary text-primary-foreground" : "bg-muted",
+										)}
+									>
+										<p className="text-sm">{message.text}</p>
+									</div>
+								</div>
+							</div>
+						);
+					})}
+					<div ref={messagesEndRef} />
+				</div>
+			</ScrollArea>
+
+			<Separator />
+			<form onSubmit={handleSend} className="flex gap-2 p-4">
+				<Input
 					type="text"
 					placeholder={`Message #${channel.name}`}
 					value={newMessage}
 					onChange={(e) => setNewMessage(e.target.value)}
 					disabled={sending}
+					className="flex-1"
 				/>
-				<button type="submit" disabled={sending || !newMessage.trim()}>
-					Send
-				</button>
+				<Button
+					type="submit"
+					size="icon"
+					disabled={sending || !newMessage.trim()}
+				>
+					<Send className="h-4 w-4" />
+				</Button>
 			</form>
 		</div>
 	);
