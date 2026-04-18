@@ -1,6 +1,5 @@
 import { signOut } from "firebase/auth";
 import { useState } from "react";
-import "./App.css";
 import { ChannelList } from "./components/ChannelList";
 import { Chat } from "./components/Chat";
 import { Login } from "./components/Login";
@@ -9,7 +8,7 @@ import { auth } from "./firebase";
 import { useAuthStore } from "./stores/authStore";
 import type { Channel } from "./types";
 
-function App() {
+export const App = () => {
 	const { user, profile, loading } = useAuthStore();
 	const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
 
@@ -55,6 +54,6 @@ function App() {
 			</div>
 		</div>
 	);
-}
+};
 
 export default App;
