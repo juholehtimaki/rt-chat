@@ -5,12 +5,12 @@ import { ChannelList } from "./components/ChannelList";
 import { Chat } from "./components/Chat";
 import { Login } from "./components/Login";
 import { NicknamePrompt } from "./components/NicknamePrompt";
-import { useAuth } from "./contexts/AuthContext";
 import { auth } from "./firebase";
+import { useAuthStore } from "./stores/authStore";
 import type { Channel } from "./types";
 
 function App() {
-	const { user, profile, loading } = useAuth();
+	const { user, profile, loading } = useAuthStore();
 	const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
 
 	if (loading) {

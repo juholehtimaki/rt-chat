@@ -7,8 +7,8 @@ import {
 	serverTimestamp,
 } from "firebase/firestore";
 import { type SyntheticEvent, useEffect, useRef, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
 import { db } from "../firebase";
+import { useAuthStore } from "../stores/authStore";
 import type { Channel, Message } from "../types";
 
 type ChatProps = {
@@ -16,7 +16,7 @@ type ChatProps = {
 };
 
 export const Chat = ({ channel }: ChatProps) => {
-	const { user, profile } = useAuth();
+	const { user, profile } = useAuthStore();
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [newMessage, setNewMessage] = useState("");
 	const [sending, setSending] = useState(false);

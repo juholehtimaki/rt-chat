@@ -1,10 +1,10 @@
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { type SyntheticEvent, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
 import { db } from "../firebase";
+import { useAuthStore } from "../stores/authStore";
 
 export const NicknamePrompt = () => {
-	const { user, refreshProfile } = useAuth();
+	const { user, refreshProfile } = useAuthStore();
 	const [nickname, setNickname] = useState("");
 	const [saving, setSaving] = useState(false);
 	const [error, setError] = useState<string | null>(null);

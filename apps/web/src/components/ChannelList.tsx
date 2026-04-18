@@ -7,8 +7,8 @@ import {
 	serverTimestamp,
 } from "firebase/firestore";
 import { type SyntheticEvent, useEffect, useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
 import { db } from "../firebase";
+import { useAuthStore } from "../stores/authStore";
 import type { Channel } from "../types";
 
 type ChannelListProps = {
@@ -20,7 +20,7 @@ export const ChannelList = ({
 	selectedChannel,
 	onSelectChannel,
 }: ChannelListProps) => {
-	const { user } = useAuth();
+	const user = useAuthStore((state) => state.user);
 	const [channels, setChannels] = useState<Channel[]>([]);
 	const [newChannelName, setNewChannelName] = useState("");
 	const [creating, setCreating] = useState(false);
