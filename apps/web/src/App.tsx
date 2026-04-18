@@ -1,14 +1,33 @@
+import { signOut } from "firebase/auth";
 import { useState } from "react";
+import "./App.css";
 import heroImg from "./assets/hero.png";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "./assets/vite.svg";
-import "./App.css";
+import { Login } from "./components/Login";
+import { useAuth } from "./contexts/AuthContext";
+import { auth } from "./firebase";
 
 function App() {
+	const { user, loading } = useAuth();
 	const [count, setCount] = useState(0);
+
+	if (loading) {
+		return <div>Loading...</div>;
+	}
+
+	if (!user) {
+		return <Login />;
+	}
 
 	return (
 		<>
+			<div style={{ padding: "1rem", textAlign: "center" }}>
+				<p>Signed in as {user.email}</p>
+				<button type="button" onClick={() => signOut(auth)}>
+					Sign Out
+				</button>
+			</div>
 			<section id="center">
 				<div className="hero">
 					<img src={heroImg} className="base" width="170" height="179" alt="" />

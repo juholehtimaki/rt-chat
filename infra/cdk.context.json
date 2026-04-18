@@ -1,10 +1,10 @@
 {
-  "hosted-zone:account=504608051065:domainName=juholehtimaki.com:region=us-east-1": {
-    "Id": "/hostedzone/Z08495131WHPS2XO7PW2T",
-    "Name": "juholehtimaki.com."
-  },
-  "hosted-zone:account=504608051065:domainName=juholehtimaki.com:region=eu-west-1": {
-    "Id": "/hostedzone/Z08495131WHPS2XO7PW2T",
-    "Name": "juholehtimaki.com."
-  }
+	"hosted-zone:account=504608051065:domainName=juholehtimaki.com:region=us-east-1": {
+		"Id": "/hostedzone/Z08495131WHPS2XO7PW2T",
+		"Name": "juholehtimaki.com."
+	},
+	"hosted-zone:account=504608051065:domainName=juholehtimaki.com:region=eu-west-1": {
+		"Id": "/hostedzone/Z08495131WHPS2XO7PW2T",
+		"Name": "juholehtimaki.com."
+	}
 }
