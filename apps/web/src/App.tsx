@@ -11,6 +11,7 @@ import { NicknamePrompt } from "./components/NicknamePrompt";
 import { auth } from "./firebase";
 import { useAuthStore } from "./stores/authStore";
 import type { Channel } from "./types";
+import { getInitials } from "./utils/getInitials";
 
 export const App = () => {
 	const { user, profile, loading } = useAuthStore();
@@ -31,15 +32,6 @@ export const App = () => {
 	if (!profile) {
 		return <NicknamePrompt />;
 	}
-
-	const getInitials = (name: string) => {
-		return name
-			.split(" ")
-			.map((n) => n[0])
-			.join("")
-			.toUpperCase()
-			.slice(0, 2);
-	};
 
 	return (
 		<div className="flex h-screen flex-col bg-background">

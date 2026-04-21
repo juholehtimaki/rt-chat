@@ -4,7 +4,10 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:web": "vitest run --project web",
+		"test:infra": "vitest run --project infra",
 		"build:web": "pnpm --filter web build",
 		"dev:web": "pnpm --filter web dev",
 		"check": "biome check .",
@@ -16,6 +19,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "2.4.12",
 		"@types/node": "^24.12.2",
-		"typescript": "~6.0.2"
+		"typescript": "~6.0.2",
+		"vitest": "^3.2.4"
 	}
 }

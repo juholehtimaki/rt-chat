@@ -22,5 +22,6 @@
 		"typeRoots": ["./node_modules/@types", "../node_modules/@types"],
 		"types": ["node"]
 	},
+	"include": ["infra.ts", "lib/**/*.ts", "__tests__/**/*.ts"],
 	"exclude": ["node_modules", "cdk.out"]
 }
