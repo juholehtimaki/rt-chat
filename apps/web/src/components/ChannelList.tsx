@@ -1,3 +1,7 @@
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { ScrollArea } from "@workspace/ui/components/scroll-area";
+import { Separator } from "@workspace/ui/components/separator";
 import {
 	addDoc,
 	collection,
@@ -11,10 +15,6 @@ import { type SyntheticEvent, useEffect, useState } from "react";
 import { db } from "../firebase";
 import { useAuthStore } from "../stores/authStore";
 import type { Channel } from "../types";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { ScrollArea } from "./ui/scroll-area";
-import { Separator } from "./ui/separator";
 
 type ChannelListProps = {
 	selectedChannel: Channel | null;

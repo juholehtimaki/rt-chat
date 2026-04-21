@@ -1,3 +1,6 @@
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
+import { Button } from "@workspace/ui/components/button";
+import { Separator } from "@workspace/ui/components/separator";
 import { signOut } from "firebase/auth";
 import { LogOut, MessageCircle } from "lucide-react";
 import { useState } from "react";
@@ -5,9 +8,6 @@ import { ChannelList } from "./components/ChannelList";
 import { Chat } from "./components/Chat";
 import { Login } from "./components/Login";
 import { NicknamePrompt } from "./components/NicknamePrompt";
-import { Avatar, AvatarFallback } from "./components/ui/avatar";
-import { Button } from "./components/ui/button";
-import { Separator } from "./components/ui/separator";
 import { auth } from "./firebase";
 import { useAuthStore } from "./stores/authStore";
 import type { Channel } from "./types";

@@ -1,17 +1,17 @@
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
-import { type SyntheticEvent, useState } from "react";
-import { db } from "../firebase";
-import { useAuthStore } from "../stores/authStore";
-import { Button } from "./ui/button";
+import { Button } from "@workspace/ui/components/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "./ui/card";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+} from "@workspace/ui/components/card";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import { type SyntheticEvent, useState } from "react";
+import { db } from "../firebase";
+import { useAuthStore } from "../stores/authStore";
 
 export const NicknamePrompt = () => {
 	const { user, refreshProfile } = useAuthStore();

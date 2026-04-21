@@ -1,3 +1,9 @@
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { ScrollArea } from "@workspace/ui/components/scroll-area";
+import { Separator } from "@workspace/ui/components/separator";
+import { cn } from "@workspace/ui/lib/utils";
 import {
 	addDoc,
 	collection,
@@ -9,14 +15,8 @@ import {
 import { Hash, Send } from "lucide-react";
 import { type SyntheticEvent, useEffect, useRef, useState } from "react";
 import { db } from "../firebase";
-import { cn } from "../lib/utils";
 import { useAuthStore } from "../stores/authStore";
 import type { Channel, Message } from "../types";
-import { Avatar, AvatarFallback } from "./ui/avatar";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { ScrollArea } from "./ui/scroll-area";
-import { Separator } from "./ui/separator";
 
 type ChatProps = {
 	channel: Channel;

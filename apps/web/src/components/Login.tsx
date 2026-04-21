@@ -1,3 +1,14 @@
+import { Button } from "@workspace/ui/components/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from "@workspace/ui/components/card";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import {
 	createUserWithEmailAndPassword,
 	GoogleAuthProvider,
@@ -6,17 +17,6 @@ import {
 } from "firebase/auth";
 import { type SyntheticEvent, useState } from "react";
 import { auth } from "../firebase";
-import { Button } from "./ui/button";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from "./ui/card";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
 
 export const Login = () => {
 	const [email, setEmail] = useState("");
