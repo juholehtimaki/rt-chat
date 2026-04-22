@@ -7,15 +7,22 @@ import type * as React from "react";
 function ScrollArea({
 	className,
 	children,
+	viewportRef,
+	onScroll,
 	...props
-}: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
+}: React.ComponentProps<typeof ScrollAreaPrimitive.Root> & {
+	viewportRef?: React.RefObject<HTMLDivElement | null>;
+	onScroll?: React.UIEventHandler<HTMLDivElement>;
+}) {
 	return (
 		<ScrollAreaPrimitive.Root
 			data-slot="scroll-area"
-			className={cn("relative", className)}
+			className={cn("relative overflow-hidden", className)}
 			{...props}
 		>
 			<ScrollAreaPrimitive.Viewport
+				ref={viewportRef}
+				onScroll={onScroll}
 				data-slot="scroll-area-viewport"
 				className="size-full rounded-[inherit] transition-[color,box-shadow] outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1"
 			>

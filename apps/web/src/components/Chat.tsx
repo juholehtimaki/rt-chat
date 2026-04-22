@@ -4,19 +4,14 @@ import { Input } from "@workspace/ui/components/input";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { Separator } from "@workspace/ui/components/separator";
 import { cn } from "@workspace/ui/lib/utils";
-import {
-	addDoc,
-	collection,
-	onSnapshot,
-	orderBy,
-	query,
-	serverTimestamp,
-} from "firebase/firestore";
-import { Hash, Send } from "lucide-react";
-import { type SyntheticEvent, useEffect, useRef, useState } from "react";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { Hash, Loader2, Send } from "lucide-react";
+import { type SyntheticEvent, useRef, useState } from "react";
+import { getInitials } from "@/utils/getInitials";
 import { db } from "../firebase";
+import { useChannelMessages } from "../hooks/useChannelMessages";
 import { useAuthStore } from "../stores/authStore";
-import type { Channel, Message } from "../types";
+import type { Channel } from "../types";
 
 type ChatProps = {
 	channel: Channel;
@@ -24,28 +19,14 @@ type ChatProps = {
 
 export const Chat = ({ channel }: ChatProps) => {
 	const { user, profile } = useAuthStore();
-	const [messages, setMessages] = useState<Message[]>([]);
 	const [newMessage, setNewMessage] = useState("");
 	const [sending, setSending] = useState(false);
-	const messagesEndRef = useRef<HTMLDivElement>(null);
+	const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-	useEffect(() => {
-		const q = query(
-			collection(db, "channels", channel.id, "messages"),
-			orderBy("createdAt", "asc"),
-		);
-		const unsubscribe = onSnapshot(q, (snapshot) => {
-			const messagesData = snapshot.docs.map((doc) => ({
-				id: doc.id,
-				...doc.data(),
-			})) as Message[];
-			setMessages(messagesData);
-			setTimeout(() => {
-				messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-			}, 0);
-		});
-		return unsubscribe;
-	}, [channel.id]);
+	const { messages, hasMore, loadingMore, handleScroll } = useChannelMessages({
+		channelId: channel.id,
+		scrollAreaRef,
+	});
 
 	const handleSend = async (e: SyntheticEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -66,16 +47,6 @@ export const Chat = ({ channel }: ChatProps) => {
 		}
 	};
 
-	const getInitials = (name: string | undefined) => {
-		if (!name) return "?";
-		return name
-			.split(" ")
-			.map((n) => n[0])
-			.join("")
-			.toUpperCase()
-			.slice(0, 2);
-	};
-
 	return (
 		<div className="flex h-full flex-col">
 			<div className="flex items-center gap-2 border-b px-4 py-3">
@@ -83,8 +54,22 @@ export const Chat = ({ channel }: ChatProps) => {
 				<h2 className="font-semibold">{channel.name}</h2>
 			</div>
 
-			<ScrollArea className="flex-1 p-4">
-				<div className="space-y-4">
+			<ScrollArea
+				className="flex-1"
+				viewportRef={scrollAreaRef}
+				onScroll={handleScroll}
+			>
+				<div className="space-y-4 p-4">
+					{loadingMore && (
+						<div className="flex justify-center py-2">
+							<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+						</div>
+					)}
+					{!hasMore && messages.length > 0 && (
+						<div className="text-center text-sm text-muted-foreground py-2">
+							Beginning of conversation
+						</div>
+					)}
 					{messages.map((message) => {
 						const isOwn = message.userId === user?.uid;
 						return (
@@ -128,7 +113,6 @@ export const Chat = ({ channel }: ChatProps) => {
 							</div>
 						);
 					})}
-					<div ref={messagesEndRef} />
 				</div>
 			</ScrollArea>
 
@@ -139,7 +123,6 @@ export const Chat = ({ channel }: ChatProps) => {
 					placeholder={`Message #${channel.name}`}
 					value={newMessage}
 					onChange={(e) => setNewMessage(e.target.value)}
-					disabled={sending}
 					className="flex-1"
 				/>
 				<Button
