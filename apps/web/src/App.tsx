@@ -11,7 +11,7 @@ import { NicknamePrompt } from "./components/NicknamePrompt";
 import { auth } from "./firebase";
 import { useAuthStore } from "./stores/authStore";
 import type { Channel } from "./types";
-import { getInitials } from "./utils/getInitials";
+import { getInitial } from "./utils/getInitial";
 
 export const App = () => {
 	const { user, profile, loading } = useAuthStore();
@@ -44,7 +44,7 @@ export const App = () => {
 					<div className="flex items-center gap-2">
 						<Avatar className="h-8 w-8">
 							<AvatarFallback className="text-xs">
-								{getInitials(profile.nickname)}
+								{getInitial(profile.nickname)}
 							</AvatarFallback>
 						</Avatar>
 						<span className="text-sm font-medium">{profile.nickname}</span>

@@ -7,7 +7,7 @@ import { cn } from "@workspace/ui/lib/utils";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { Hash, Loader2, Send } from "lucide-react";
 import { type SyntheticEvent, useRef, useState } from "react";
-import { getInitials } from "@/utils/getInitials";
+import { getInitial } from "@/utils/getInitial";
 import { db } from "../firebase";
 import { useChannelMessages } from "../hooks/useChannelMessages";
 import { useAuthStore } from "../stores/authStore";
@@ -79,7 +79,7 @@ export const Chat = ({ channel }: ChatProps) => {
 							>
 								<Avatar className="h-8 w-8 shrink-0">
 									<AvatarFallback className="text-xs">
-										{getInitials(message.userNickname)}
+										{getInitial(message.userNickname)}
 									</AvatarFallback>
 								</Avatar>
 								<div
