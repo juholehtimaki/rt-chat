@@ -3,25 +3,86 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // User profiles
+    // User profiles - owner-only access to protect email
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow create, update, delete: if request.auth != null
+      allow read: if request.auth != null
+        && request.auth.uid == userId;
+
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.keys().hasAll(['nickname', 'email', 'createdAt'])
+        && request.resource.data.nickname is string
+        && request.resource.data.nickname.size() >= 1
+        && request.resource.data.nickname.size() <= 50
+        && request.resource.data.email is string
+        && request.resource.data.email.size() >= 1
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.data.nickname is string
+        && request.resource.data.nickname.size() >= 1
+        && request.resource.data.nickname.size() <= 50
+        // Prevent changing immutable fields
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      allow delete: if request.auth != null
         && request.auth.uid == userId;
     }
 
     // Chat channels
     match /channels/{channelId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null
+
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll(['name', 'createdBy', 'createdAt'])
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 100
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if request.auth != null
+        && request.auth.uid == resource.data.createdBy
+        && request.resource.data.name is string
+        && request.resource.data.name.size() >= 1
+        && request.resource.data.name.size() <= 100
+        // Prevent changing immutable fields
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      allow delete: if request.auth != null
         && request.auth.uid == resource.data.createdBy;
 
       // Messages within a channel
       match /messages/{messageId} {
         allow read: if request.auth != null;
-        allow create: if request.auth != null;
-        allow update, delete: if request.auth != null
+
+        allow create: if request.auth != null
+          && request.resource.data.keys().hasAll(['text', 'userId', 'userNickname', 'createdAt', 'channelId'])
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() >= 1
+          && request.resource.data.text.size() <= 5000
+          && request.resource.data.userNickname is string
+          && request.resource.data.userNickname.size() >= 1
+          && request.resource.data.userNickname.size() <= 50
+          && request.resource.data.channelId == channelId
+          && request.resource.data.createdAt == request.time;
+
+        allow update: if request.auth != null
+          && request.auth.uid == resource.data.userId
+          && request.resource.data.text is string
+          && request.resource.data.text.size() >= 1
+          && request.resource.data.text.size() <= 5000
+          // Prevent changing immutable fields
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.userNickname == resource.data.userNickname
+          && request.resource.data.channelId == resource.data.channelId
+          && request.resource.data.createdAt == resource.data.createdAt;
+
+        allow delete: if request.auth != null
           && request.auth.uid == resource.data.userId;
       }
     }
