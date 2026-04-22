@@ -9,6 +9,9 @@ on:
       aws_region:
         required: true
         type: string
+    secrets:
+      FIREBASE_SERVICE_ACCOUNT:
+        required: true
 
 jobs:
   deploy:
@@ -47,3 +50,18 @@ jobs:
 
       - name: CDK deploy
         run: cd infra && pnpm cdk deploy --all --require-approval never
+
+  firebase:
+    name: Firebase Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Deploy Firestore rules
+        uses: w9jds/firebase-action@v15.15.0
+        with:
+          args: deploy --only firestore:rules
+        env:
+          GCP_SA_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}

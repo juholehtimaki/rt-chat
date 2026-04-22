@@ -18,7 +18,6 @@ jobs:
   qa:
     name: QA
     uses: ./.github/workflows/_qa.yaml
-    secrets: inherit
     with:
       aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
       aws_region: ${{ vars.AWS_REGION }}
@@ -27,7 +26,8 @@ jobs:
     name: Deploy
     needs: qa
     uses: ./.github/workflows/_deploy.yaml
-    secrets: inherit
     with:
       aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
       aws_region: ${{ vars.AWS_REGION }}
+    secrets:
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
