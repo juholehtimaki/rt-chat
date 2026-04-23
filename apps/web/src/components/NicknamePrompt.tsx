@@ -8,36 +8,16 @@ import {
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { type SyntheticEvent, useState } from "react";
-import { db } from "../firebase";
-import { useAuthStore } from "../stores/authStore";
+import { useNickname } from "../hooks/useNickname";
 
 export const NicknamePrompt = () => {
-	const { user, refreshProfile } = useAuthStore();
 	const [nickname, setNickname] = useState("");
-	const [saving, setSaving] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+	const { saving, error, saveNickname } = useNickname();
 
 	const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		if (!nickname.trim() || !user) return;
-
-		setSaving(true);
-		setError(null);
-
-		try {
-			await setDoc(doc(db, "users", user.uid), {
-				nickname: nickname.trim(),
-				email: user.email,
-				createdAt: serverTimestamp(),
-			});
-			await refreshProfile();
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "An error occurred");
-		} finally {
-			setSaving(false);
-		}
+		await saveNickname(nickname);
 	};
 
 	return (
