@@ -2,18 +2,9 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { Separator } from "@workspace/ui/components/separator";
-import {
-	addDoc,
-	collection,
-	onSnapshot,
-	orderBy,
-	query,
-	serverTimestamp,
-} from "firebase/firestore";
 import { Hash, Plus } from "lucide-react";
-import { type SyntheticEvent, useEffect, useState } from "react";
-import { db } from "../firebase";
-import { useAuthStore } from "../stores/authStore";
+import { type SyntheticEvent, useState } from "react";
+import { useChannels } from "../hooks/useChannels";
 import type { Channel } from "../types";
 
 type ChannelListProps = {
@@ -25,38 +16,16 @@ export const ChannelList = ({
 	selectedChannel,
 	onSelectChannel,
 }: ChannelListProps) => {
-	const user = useAuthStore((state) => state.user);
-	const [channels, setChannels] = useState<Channel[]>([]);
+	const { channels, creating, createChannel } = useChannels();
 	const [newChannelName, setNewChannelName] = useState("");
-	const [creating, setCreating] = useState(false);
-
-	useEffect(() => {
-		const q = query(collection(db, "channels"), orderBy("createdAt", "desc"));
-		const unsubscribe = onSnapshot(q, (snapshot) => {
-			const channelsData = snapshot.docs.map((doc) => ({
-				id: doc.id,
-				...doc.data(),
-			})) as Channel[];
-			setChannels(channelsData);
-		});
-		return unsubscribe;
-	}, []);
 
 	const handleCreateChannel = async (e: SyntheticEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		if (!newChannelName.trim() || !user) return;
+		const name = newChannelName.trim();
+		if (!name) return;
 
-		setCreating(true);
-		try {
-			await addDoc(collection(db, "channels"), {
-				name: newChannelName.trim(),
-				createdAt: serverTimestamp(),
-				createdBy: user.uid,
-			});
-			setNewChannelName("");
-		} finally {
-			setCreating(false);
-		}
+		await createChannel(name);
+		setNewChannelName("");
 	};
 
 	return (
