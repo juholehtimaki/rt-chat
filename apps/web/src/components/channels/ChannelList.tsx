@@ -4,8 +4,8 @@ import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { Separator } from "@workspace/ui/components/separator";
 import { Hash, Plus } from "lucide-react";
 import { type SyntheticEvent, useState } from "react";
-import { useChannels } from "../hooks/useChannels";
-import type { Channel } from "../types";
+import { useChannels } from "../../hooks/useChannels";
+import type { Channel } from "../../types";
 
 type ChannelListProps = {
 	selectedChannel: Channel | null;

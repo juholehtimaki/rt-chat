@@ -9,7 +9,7 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { type SyntheticEvent, useState } from "react";
-import { useNickname } from "../hooks/useNickname";
+import { useNickname } from "../../hooks/useNickname";
 
 export const NicknamePrompt = () => {
 	const [nickname, setNickname] = useState("");
