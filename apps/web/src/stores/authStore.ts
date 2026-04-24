@@ -1,3 +1,4 @@
+import { toast } from "@workspace/ui/components/sonner";
 import type { User } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
@@ -15,6 +16,22 @@ type AuthState = {
 	refreshProfile: () => Promise<void>;
 };
 
+const getProfile = async (uid: string) => {
+	try {
+		const docSnap = await getDoc(doc(db, "users", uid));
+		if (docSnap.exists()) {
+			useAuthStore.setState({
+				profile: { id: docSnap.id, ...docSnap.data() } as UserProfile,
+			});
+		} else {
+			useAuthStore.setState({ profile: null });
+		}
+	} catch (err) {
+		console.error("Failed to fetch profile", err);
+		toast.error("Failed to load profile");
+	}
+};
+
 export const useAuthStore = create<AuthState>((set, get) => ({
 	user: null,
 	profile: null,
@@ -27,31 +44,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 	refreshProfile: async () => {
 		const { user } = get();
 		if (user) {
-			const docSnap = await getDoc(doc(db, "users", user.uid));
-			if (docSnap.exists()) {
-				set({ profile: { id: docSnap.id, ...docSnap.data() } as UserProfile });
-			} else {
-				set({ profile: null });
-			}
+			await getProfile(user.uid);
 		}
 	},
 }));
 
-const fetchProfile = async (uid: string) => {
-	const docSnap = await getDoc(doc(db, "users", uid));
-	if (docSnap.exists()) {
-		useAuthStore.setState({
-			profile: { id: docSnap.id, ...docSnap.data() } as UserProfile,
-		});
-	} else {
-		useAuthStore.setState({ profile: null });
-	}
-};
-
 onAuthStateChanged(auth, async (user) => {
 	useAuthStore.setState({ user });
 	if (user) {
-		await fetchProfile(user.uid);
+		await getProfile(user.uid);
 	} else {
 		useAuthStore.setState({ profile: null });
 	}
