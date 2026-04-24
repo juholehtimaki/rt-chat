@@ -1,3 +1,4 @@
+import { toast } from "@workspace/ui/components/sonner";
 import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useState } from "react";
 import { db } from "../firebase";
@@ -6,13 +7,11 @@ import { useAuthStore } from "../stores/authStore";
 export const useNickname = () => {
 	const { user, refreshProfile } = useAuthStore();
 	const [saving, setSaving] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 
 	const saveNickname = async (nickname: string) => {
 		if (!nickname.trim() || !user) return;
 
 		setSaving(true);
-		setError(null);
 
 		try {
 			await setDoc(doc(db, "users", user.uid), {
@@ -21,12 +20,14 @@ export const useNickname = () => {
 				createdAt: serverTimestamp(),
 			});
 			await refreshProfile();
+			toast.success("Nickname updated");
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "An error occurred");
+			console.error("Failed to update nickname", err);
+			toast.error("Failed to update nickname");
 		} finally {
 			setSaving(false);
 		}
 	};
 
-	return { saving, error, saveNickname };
+	return { saving, saveNickname };
 };

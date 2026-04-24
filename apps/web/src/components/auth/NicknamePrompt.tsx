@@ -13,7 +13,7 @@ import { useNickname } from "../../hooks/useNickname";
 
 export const NicknamePrompt = () => {
 	const [nickname, setNickname] = useState("");
-	const { saving, error, saveNickname } = useNickname();
+	const { saving, saveNickname } = useNickname();
 
 	const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -45,9 +45,6 @@ export const NicknamePrompt = () => {
 								required
 							/>
 						</div>
-
-						{error && <p className="text-sm text-destructive">{error}</p>}
-
 						<Button
 							type="submit"
 							className="w-full"

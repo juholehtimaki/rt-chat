@@ -1,3 +1,4 @@
+import { toast } from "@workspace/ui/components/sonner";
 import {
 	collection,
 	getDocs,
@@ -63,31 +64,39 @@ export const useChannelMessages = ({
 		setInitialLoadComplete(false);
 		newestTimestampRef.current = null;
 
-		const q = query(
-			collection(db, "channels", channelId, "messages"),
-			orderBy("createdAt", "desc"),
-			limit(MESSAGES_PER_PAGE),
-		);
+		const loadInitialMessages = async () => {
+			const q = query(
+				collection(db, "channels", channelId, "messages"),
+				orderBy("createdAt", "desc"),
+				limit(MESSAGES_PER_PAGE),
+			);
 
-		getDocs(q).then((snapshot) => {
-			const messagesData = snapshot.docs
-				.map((doc) => ({
-					id: doc.id,
-					...doc.data(),
-				}))
-				.reverse() as Message[];
+			try {
+				const snapshot = await getDocs(q);
+				const messagesData = snapshot.docs
+					.map((doc) => ({
+						id: doc.id,
+						...doc.data(),
+					}))
+					.reverse() as Message[];
 
-			setMessages(messagesData);
-			setHasMore(snapshot.docs.length === MESSAGES_PER_PAGE);
+				setMessages(messagesData);
+				setHasMore(snapshot.docs.length === MESSAGES_PER_PAGE);
 
-			if (messagesData.length > 0) {
-				newestTimestampRef.current =
-					messagesData[messagesData.length - 1].createdAt;
+				if (messagesData.length > 0) {
+					newestTimestampRef.current =
+						messagesData[messagesData.length - 1].createdAt;
+				}
+
+				setInitialLoadComplete(true);
+				setShouldScrollToBottom(true);
+			} catch (err) {
+				console.error("Failed to load messages", err);
+				toast.error("Failed to load messages");
 			}
+		};
 
-			setInitialLoadComplete(true);
-			setShouldScrollToBottom(true);
-		});
+		loadInitialMessages();
 	}, [channelId]);
 
 	// Real-time subscription for new messages
@@ -149,18 +158,24 @@ export const useChannelMessages = ({
 			limit(MESSAGES_PER_PAGE),
 		);
 
-		const snapshot = await getDocs(q);
-		const olderMessages = snapshot.docs
-			.map((doc) => ({
-				id: doc.id,
-				...doc.data(),
-			}))
-			.reverse() as Message[];
+		try {
+			const snapshot = await getDocs(q);
+			const olderMessages = snapshot.docs
+				.map((doc) => ({
+					id: doc.id,
+					...doc.data(),
+				}))
+				.reverse() as Message[];
 
-		setMessages((prev) => [...olderMessages, ...prev]);
-		setHasMore(snapshot.docs.length === MESSAGES_PER_PAGE);
-		setLoadingMore(false);
-		setShouldPreserveScroll(true);
+			setMessages((prev) => [...olderMessages, ...prev]);
+			setHasMore(snapshot.docs.length === MESSAGES_PER_PAGE);
+			setShouldPreserveScroll(true);
+		} catch (err) {
+			console.error("Failed to load more messages", err);
+			toast.error("Failed to load more messages");
+		} finally {
+			setLoadingMore(false);
+		}
 	}, [loadingMore, hasMore, messages, channelId, scrollAreaRef]);
 
 	// Scroll handler for infinite scroll

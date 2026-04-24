@@ -1,6 +1,7 @@
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Separator } from "@workspace/ui/components/separator";
+import { toast } from "@workspace/ui/components/sonner";
 import { Send } from "lucide-react";
 import { type SyntheticEvent, useState } from "react";
 
@@ -21,6 +22,9 @@ export const MessageInput = ({ channelName, onSend }: MessageInputProps) => {
 		try {
 			await onSend(message.trim());
 			setMessage("");
+		} catch (err) {
+			console.error("Failed to send message", err);
+			toast.error("Failed to send message");
 		} finally {
 			setSending(false);
 		}

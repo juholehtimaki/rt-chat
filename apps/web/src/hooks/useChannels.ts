@@ -1,3 +1,4 @@
+import { toast } from "@workspace/ui/components/sonner";
 import {
 	addDoc,
 	collection,
@@ -38,6 +39,10 @@ export const useChannels = () => {
 				createdAt: serverTimestamp(),
 				createdBy: user.uid,
 			});
+			toast.success(`Channel #${name} created`);
+		} catch (err) {
+			console.error("Failed to create channel", err);
+			toast.error("Failed to create channel");
 		} finally {
 			setCreating(false);
 		}

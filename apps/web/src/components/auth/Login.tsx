@@ -9,6 +9,7 @@ import {
 } from "@workspace/ui/components/card";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
+import { toast } from "@workspace/ui/components/sonner";
 import {
 	createUserWithEmailAndPassword,
 	GoogleAuthProvider,
@@ -22,12 +23,10 @@ export const Login = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	const [isSignUp, setIsSignUp] = useState(false);
-	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 
 	const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		setError(null);
 		setLoading(true);
 
 		try {
@@ -37,21 +36,22 @@ export const Login = () => {
 				await signInWithEmailAndPassword(auth, email, password);
 			}
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "An error occurred");
+			console.error("Authentication failed", err);
+			toast.error(err instanceof Error ? err.message : "An error occurred");
 		} finally {
 			setLoading(false);
 		}
 	};
 
 	const handleGoogleSignIn = async () => {
-		setError(null);
 		setLoading(true);
 
 		try {
 			const provider = new GoogleAuthProvider();
 			await signInWithPopup(auth, provider);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "An error occurred");
+			console.error("Google sign-in failed", err);
+			toast.error(err instanceof Error ? err.message : "An error occurred");
 		} finally {
 			setLoading(false);
 		}
@@ -93,8 +93,6 @@ export const Login = () => {
 								minLength={6}
 							/>
 						</div>
-
-						{error && <p className="text-sm text-destructive">{error}</p>}
 
 						<Button type="submit" className="w-full" disabled={loading}>
 							{loading ? "Loading..." : isSignUp ? "Sign Up" : "Sign In"}
