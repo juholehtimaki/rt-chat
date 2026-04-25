@@ -30,6 +30,65 @@ export class WebsiteStack extends cdk.Stack {
 			autoDeleteObjects: true,
 		});
 
+		const cspPolicy = [
+			"default-src 'self'",
+			"script-src 'self' https://www.gstatic.com",
+			"style-src 'self' 'unsafe-inline'",
+			"font-src 'self' data:",
+			"img-src 'self' data:",
+			[
+				"connect-src 'self'",
+				"https://rt-chat-2818d.firebaseapp.com",
+				"https://identitytoolkit.googleapis.com",
+				"https://securetoken.googleapis.com",
+				"https://www.googleapis.com",
+				"https://firestore.googleapis.com",
+				"wss://firestore.googleapis.com",
+				"https://firebaselists.googleapis.com",
+				"https://www.google-analytics.com",
+				"https://analytics.google.com",
+				"https://firebaselogging.googleapis.com",
+				"https://rt-chat-2818d.firebasestorage.app",
+				"https://firebase.google.com",
+			].join(" "),
+			"frame-ancestors 'none'",
+			"base-uri 'self'",
+			"form-action 'self'",
+		].join("; ");
+
+		const securityHeaders = new cloudfront.ResponseHeadersPolicy(
+			this,
+			"SecurityHeaders",
+			{
+				securityHeadersBehavior: {
+					contentSecurityPolicy: {
+						contentSecurityPolicy: cspPolicy,
+						override: true,
+					},
+					contentTypeOptions: { override: true },
+					frameOptions: {
+						frameOption: cloudfront.HeadersFrameOption.DENY,
+						override: true,
+					},
+					referrerPolicy: {
+						referrerPolicy:
+							cloudfront.HeadersReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN,
+						override: true,
+					},
+					strictTransportSecurity: {
+						accessControlMaxAge: cdk.Duration.days(365),
+						includeSubdomains: true,
+						override: true,
+					},
+					xssProtection: {
+						protection: true,
+						modeBlock: true,
+						override: true,
+					},
+				},
+			},
+		);
+
 		this.distribution = new cloudfront.Distribution(this, "Distribution", {
 			defaultRootObject: "index.html",
 			domainNames: [props.domainName],
@@ -40,6 +99,7 @@ export class WebsiteStack extends cdk.Stack {
 				compress: true,
 				allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
 				viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+				responseHeadersPolicy: securityHeaders,
 			},
 			errorResponses: [
 				{
