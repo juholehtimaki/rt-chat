@@ -65,11 +65,10 @@ service cloud.firestore {
           && request.resource.data.text is string
           && request.resource.data.text.size() >= 1
           && request.resource.data.text.size() <= 5000
-          && request.resource.data.userNickname is string
-          && request.resource.data.userNickname.size() >= 1
-          && request.resource.data.userNickname.size() <= 50
           && request.resource.data.channelId == channelId
-          && request.resource.data.createdAt == request.time;
+          && request.resource.data.createdAt == request.time
+          // Validate nickname matches user's profile to prevent impersonation
+          && request.resource.data.userNickname == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.nickname;
 
         allow update: if request.auth != null
           && request.auth.uid == resource.data.userId
