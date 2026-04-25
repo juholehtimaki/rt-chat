@@ -14,7 +14,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['nickname', 'email', 'createdAt'])
         && request.resource.data.nickname is string
         && request.resource.data.nickname.size() >= 1
-        && request.resource.data.nickname.size() <= 50
+        && request.resource.data.nickname.size() <= 20
         && request.resource.data.email is string
         && request.resource.data.email.size() >= 1
         && request.resource.data.createdAt == request.time;
@@ -24,7 +24,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(['nickname', 'email', 'createdAt'])
         && request.resource.data.nickname is string
         && request.resource.data.nickname.size() >= 1
-        && request.resource.data.nickname.size() <= 50
+        && request.resource.data.nickname.size() <= 20
         // Prevent changing immutable fields
         && request.resource.data.email == resource.data.email
         && request.resource.data.createdAt == resource.data.createdAt;

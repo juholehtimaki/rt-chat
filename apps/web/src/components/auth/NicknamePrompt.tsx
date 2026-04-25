@@ -40,7 +40,7 @@ export const NicknamePrompt = () => {
 								value={nickname}
 								onChange={(e) => setNickname(e.target.value)}
 								disabled={saving}
-								minLength={2}
+								minLength={1}
 								maxLength={20}
 								required
 							/>
