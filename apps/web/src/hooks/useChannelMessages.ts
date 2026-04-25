@@ -114,29 +114,36 @@ export const useChannelMessages = ({
 					orderBy("createdAt", "asc"),
 				);
 
-		const unsubscribe = onSnapshot(q, (snapshot) => {
-			snapshot.docChanges().forEach((change) => {
-				if (change.type === "added") {
-					// Use "estimate" to show client-side timestamp immediately
-					// instead of null while serverTimestamp() resolves
-					const newMessage = {
-						id: change.doc.id,
-						...change.doc.data({ serverTimestamps: "estimate" }),
-					} as Message;
+		const unsubscribe = onSnapshot(
+			q,
+			(snapshot) => {
+				snapshot.docChanges().forEach((change) => {
+					if (change.type === "added") {
+						// Use "estimate" to show client-side timestamp immediately
+						// instead of null while serverTimestamp() resolves
+						const newMessage = {
+							id: change.doc.id,
+							...change.doc.data({ serverTimestamps: "estimate" }),
+						} as Message;
 
-					setMessages((prev) => {
-						if (prev.some((m) => m.id === newMessage.id)) return prev;
-						return [...prev, newMessage];
-					});
+						setMessages((prev) => {
+							if (prev.some((m) => m.id === newMessage.id)) return prev;
+							return [...prev, newMessage];
+						});
 
-					if (newMessage.createdAt) {
-						newestTimestampRef.current = newMessage.createdAt;
+						if (newMessage.createdAt) {
+							newestTimestampRef.current = newMessage.createdAt;
+						}
+
+						setShouldScrollToBottom(true);
 					}
-
-					setShouldScrollToBottom(true);
-				}
-			});
-		});
+				});
+			},
+			(err) => {
+				console.error("Failed to listen to messages", err);
+				toast.error("Failed to receive new messages");
+			},
+		);
 
 		return unsubscribe;
 	}, [channelId, initialLoadComplete]);

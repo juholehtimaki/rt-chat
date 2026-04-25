@@ -19,13 +19,20 @@ export const useChannels = () => {
 
 	useEffect(() => {
 		const q = query(collection(db, "channels"), orderBy("createdAt", "desc"));
-		const unsubscribe = onSnapshot(q, (snapshot) => {
-			const channelsData = snapshot.docs.map((doc) => ({
-				id: doc.id,
-				...doc.data(),
-			})) as Channel[];
-			setChannels(channelsData);
-		});
+		const unsubscribe = onSnapshot(
+			q,
+			(snapshot) => {
+				const channelsData = snapshot.docs.map((doc) => ({
+					id: doc.id,
+					...doc.data(),
+				})) as Channel[];
+				setChannels(channelsData);
+			},
+			(err) => {
+				console.error("Failed to listen to channels", err);
+				toast.error("Failed to load channels");
+			},
+		);
 		return unsubscribe;
 	}, []);
 
