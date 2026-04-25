@@ -19,6 +19,7 @@ export const MessageInput = ({ channelName, onSend }: MessageInputProps) => {
 		if (!message.trim()) return;
 
 		setSending(true);
+
 		try {
 			await onSend(message.trim());
 			setMessage("");

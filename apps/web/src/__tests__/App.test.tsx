@@ -38,7 +38,7 @@ describe("App", () => {
 			setUser: vi.fn(),
 			setProfile: vi.fn(),
 			setLoading: vi.fn(),
-			refreshProfile: vi.fn(),
+			getProfile: vi.fn(),
 		});
 
 		render(<App />);
@@ -53,7 +53,7 @@ describe("App", () => {
 			setUser: vi.fn(),
 			setProfile: vi.fn(),
 			setLoading: vi.fn(),
-			refreshProfile: vi.fn(),
+			getProfile: vi.fn(),
 		});
 
 		render(<App />);
@@ -68,7 +68,7 @@ describe("App", () => {
 			setUser: vi.fn(),
 			setProfile: vi.fn(),
 			setLoading: vi.fn(),
-			refreshProfile: vi.fn(),
+			getProfile: vi.fn(),
 		});
 
 		render(<App />);
@@ -87,7 +87,7 @@ describe("App", () => {
 			setUser: vi.fn(),
 			setProfile: vi.fn(),
 			setLoading: vi.fn(),
-			refreshProfile: vi.fn(),
+			getProfile: vi.fn(),
 		});
 
 		render(<App />);

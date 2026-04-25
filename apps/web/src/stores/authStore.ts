@@ -13,7 +13,7 @@ type AuthState = {
 	setUser: (user: User | null) => void;
 	setProfile: (profile: UserProfile | null) => void;
 	setLoading: (loading: boolean) => void;
-	refreshProfile: () => Promise<void>;
+	getProfile: () => Promise<void>;
 };
 
 const getProfile = async (uid: string) => {
@@ -41,7 +41,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 	setProfile: (profile) => set({ profile }),
 	setLoading: (loading) => set({ loading }),
 
-	refreshProfile: async () => {
+	getProfile: async () => {
 		const { user } = get();
 		if (user) {
 			await getProfile(user.uid);
@@ -50,11 +50,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 }));
 
 onAuthStateChanged(auth, async (user) => {
-	useAuthStore.setState({ user });
 	if (user) {
+		useAuthStore.setState({ user, loading: true });
 		await getProfile(user.uid);
 	} else {
-		useAuthStore.setState({ profile: null });
+		useAuthStore.setState({ user, profile: null });
 	}
 	useAuthStore.setState({ loading: false });
 });

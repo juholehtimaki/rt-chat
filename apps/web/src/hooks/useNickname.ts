@@ -5,7 +5,7 @@ import { db } from "../firebase";
 import { useAuthStore } from "../stores/authStore";
 
 export const useNickname = () => {
-	const { user, refreshProfile } = useAuthStore();
+	const { user, getProfile: refreshProfile } = useAuthStore();
 	const [saving, setSaving] = useState(false);
 
 	const saveNickname = async (nickname: string) => {
