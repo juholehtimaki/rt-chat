@@ -1,5 +1,11 @@
 import { toast } from "@workspace/ui/components/sonner";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
+import {
+	doc,
+	getDoc,
+	serverTimestamp,
+	setDoc,
+	updateDoc,
+} from "firebase/firestore";
 import { useState } from "react";
 import { db } from "../firebase";
 import { useAuthStore } from "../stores/authStore";
@@ -14,11 +20,19 @@ export const useNickname = () => {
 		setSaving(true);
 
 		try {
-			await setDoc(doc(db, "users", user.uid), {
-				nickname: nickname.trim(),
-				email: user.email,
-				createdAt: serverTimestamp(),
-			});
+			const userRef = doc(db, "users", user.uid);
+			const userDoc = await getDoc(userRef);
+
+			if (userDoc.exists()) {
+				await updateDoc(userRef, { nickname: nickname.trim() });
+			} else {
+				await setDoc(userRef, {
+					nickname: nickname.trim(),
+					email: user.email,
+					createdAt: serverTimestamp(),
+				});
+			}
+
 			await refreshProfile();
 			toast.success("Nickname updated");
 		} catch (err) {
