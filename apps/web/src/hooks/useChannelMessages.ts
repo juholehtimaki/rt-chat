@@ -207,29 +207,44 @@ export const useChannelMessages = ({
 		async (text: string) => {
 			if (!user || !profile) return;
 
-			await addDoc(collection(db, "channels", channelId, "messages"), {
-				text,
-				userId: user.uid,
-				userNickname: profile.nickname,
-				createdAt: serverTimestamp(),
-				channelId,
-			});
+			try {
+				await addDoc(collection(db, "channels", channelId, "messages"), {
+					text,
+					userId: user.uid,
+					userNickname: profile.nickname,
+					createdAt: serverTimestamp(),
+					channelId,
+				});
+			} catch (err) {
+				console.error("Failed to send message", err);
+				toast.error("Failed to send message");
+			}
 		},
 		[channelId, user, profile],
 	);
 
 	const deleteMessage = useCallback(
 		async (messageId: string) => {
-			await deleteDoc(doc(db, "channels", channelId, "messages", messageId));
+			try {
+				await deleteDoc(doc(db, "channels", channelId, "messages", messageId));
+			} catch (err) {
+				console.error("Failed to delete message", err);
+				toast.error("Failed to delete message");
+			}
 		},
 		[channelId],
 	);
 
 	const editMessage = useCallback(
 		async (messageId: string, newText: string) => {
-			await updateDoc(doc(db, "channels", channelId, "messages", messageId), {
-				text: newText,
-			});
+			try {
+				await updateDoc(doc(db, "channels", channelId, "messages", messageId), {
+					text: newText,
+				});
+			} catch (err) {
+				console.error("Failed to edit message", err);
+				toast.error("Failed to edit message");
+			}
 		},
 		[channelId],
 	);

@@ -1,7 +1,6 @@
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { toast } from "@workspace/ui/components/sonner";
 import { cn } from "@workspace/ui/lib/utils";
 import { Check, Pencil, Trash2, X } from "lucide-react";
 import { useState } from "react";
@@ -28,14 +27,8 @@ export const MessageBubble = ({
 
 	const handleDelete = async () => {
 		setIsDeleting(true);
-		try {
-			await onDelete();
-		} catch (err) {
-			console.error("Failed to delete message", err);
-			toast.error("Failed to delete message");
-		} finally {
-			setIsDeleting(false);
-		}
+		await onDelete();
+		setIsDeleting(false);
 	};
 
 	const handleSaveEdit = async () => {
@@ -46,15 +39,9 @@ export const MessageBubble = ({
 		}
 
 		setIsSaving(true);
-		try {
-			await onEdit(editText.trim());
-			setIsEditing(false);
-		} catch (err) {
-			console.error("Failed to edit message", err);
-			toast.error("Failed to edit message");
-		} finally {
-			setIsSaving(false);
-		}
+		await onEdit(editText.trim());
+		setIsEditing(false);
+		setIsSaving(false);
 	};
 
 	const handleCancelEdit = () => {
