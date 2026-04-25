@@ -1,17 +1,23 @@
 import { toast } from "@workspace/ui/components/sonner";
 import {
+	addDoc,
 	collection,
+	deleteDoc,
+	doc,
 	getDocs,
 	limit,
 	onSnapshot,
 	orderBy,
 	query,
+	serverTimestamp,
 	startAfter,
 	startAt,
 	type Timestamp,
+	updateDoc,
 } from "firebase/firestore";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { db } from "../firebase";
+import { useAuthStore } from "../stores/authStore";
 import type { Message } from "../types";
 import { useScrollManager } from "./useScrollManager";
 
@@ -26,6 +32,7 @@ export const useChannelMessages = ({
 	channelId,
 	scrollAreaRef,
 }: UseChannelMessagesOptions) => {
+	const { user, profile } = useAuthStore();
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [hasMore, setHasMore] = useState(true);
 	const [loadingMore, setLoadingMore] = useState(false);
@@ -196,10 +203,44 @@ export const useChannelMessages = ({
 		[hasMore, loadingMore, loadMoreMessages],
 	);
 
+	const sendMessage = useCallback(
+		async (text: string) => {
+			if (!user || !profile) return;
+
+			await addDoc(collection(db, "channels", channelId, "messages"), {
+				text,
+				userId: user.uid,
+				userNickname: profile.nickname,
+				createdAt: serverTimestamp(),
+				channelId,
+			});
+		},
+		[channelId, user, profile],
+	);
+
+	const deleteMessage = useCallback(
+		async (messageId: string) => {
+			await deleteDoc(doc(db, "channels", channelId, "messages", messageId));
+		},
+		[channelId],
+	);
+
+	const editMessage = useCallback(
+		async (messageId: string, newText: string) => {
+			await updateDoc(doc(db, "channels", channelId, "messages", messageId), {
+				text: newText,
+			});
+		},
+		[channelId],
+	);
+
 	return {
 		messages,
 		hasMore,
 		loadingMore,
 		handleScroll,
+		sendMessage,
+		deleteMessage,
+		editMessage,
 	};
 };
