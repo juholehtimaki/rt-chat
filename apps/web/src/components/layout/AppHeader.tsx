@@ -11,15 +11,18 @@ type AppHeaderProps = {
 
 export const AppHeader = ({ nickname, onSignOut }: AppHeaderProps) => {
 	return (
-		<header className="flex h-14 items-center justify-between border-b px-4">
-			<div className="flex items-center gap-2">
-				<MessageCircle className="h-6 w-6" />
-				<h1 className="text-lg font-semibold">RT Chat</h1>
-			</div>
+		<header className="relative z-10 flex h-14 items-center justify-between border-b bg-card/80 px-6 shadow-sm backdrop-blur-sm">
 			<div className="flex items-center gap-3">
-				<div className="flex items-center gap-2">
-					<Avatar className="h-8 w-8">
-						<AvatarFallback className="text-xs">
+				<div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+					<MessageCircle className="h-5 w-5 text-primary" aria-hidden="true" />
+				</div>
+				<h1 className="text-lg font-semibold tracking-tight">RT Chat</h1>
+			</div>
+
+			<div className="flex items-center gap-4">
+				<div className="flex items-center gap-3">
+					<Avatar className="h-8 w-8 ring-2 ring-border">
+						<AvatarFallback className="text-xs font-medium">
 							{getInitial(nickname)}
 						</AvatarFallback>
 					</Avatar>
@@ -30,9 +33,10 @@ export const AppHeader = ({ nickname, onSignOut }: AppHeaderProps) => {
 					variant="ghost"
 					size="icon"
 					onClick={onSignOut}
-					title="Sign out"
+					aria-label="Sign out"
+					className="transition-colors hover:bg-destructive/10 hover:text-destructive"
 				>
-					<LogOut className="h-4 w-4" />
+					<LogOut className="h-4 w-4" aria-hidden="true" />
 				</Button>
 			</div>
 		</header>

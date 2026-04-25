@@ -22,18 +22,18 @@ export const MessageList = ({
 }: MessageListProps) => {
 	return (
 		<ScrollArea
-			className="flex-1"
+			className="flex-1 bg-muted/20"
 			viewportRef={scrollAreaRef}
 			onScroll={onScroll}
 		>
-			<div className="space-y-4 p-4">
+			<div className="space-y-6 p-6">
 				{loadingMore && (
-					<div className="flex justify-center py-2">
-						<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+					<div className="flex justify-center py-3">
+						<Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
 					</div>
 				)}
 				{!hasMore && messages.length > 0 && (
-					<div className="text-center text-sm text-muted-foreground py-2">
+					<div className="mx-auto w-fit rounded-full bg-muted/50 px-4 py-1.5 text-center text-xs text-muted-foreground">
 						Beginning of conversation
 					</div>
 				)}

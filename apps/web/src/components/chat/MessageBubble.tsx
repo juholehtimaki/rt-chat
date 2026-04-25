@@ -10,39 +10,45 @@ type MessageBubbleProps = {
 
 export const MessageBubble = ({ message, isOwn }: MessageBubbleProps) => {
 	return (
-		<div
-			className={cn("flex max-w-[70%] flex-col", isOwn && "ml-auto items-end")}
+		<article
+			className={cn("flex max-w-[75%] flex-col", isOwn && "ml-auto items-end")}
 		>
-			<div
-				className={cn("flex items-center gap-2", isOwn && "flex-row-reverse")}
+			<header
+				className={cn(
+					"mb-1 flex items-center gap-2",
+					isOwn && "flex-row-reverse",
+				)}
 			>
-				<Avatar className="h-8 w-8">
-					<AvatarFallback className="text-xs">
+				<Avatar className="h-7 w-7 ring-1 ring-border/50">
+					<AvatarFallback className="text-xs font-medium">
 						{getInitial(message.userNickname)}
 					</AvatarFallback>
 				</Avatar>
 				<span className="text-sm font-medium">
 					{message.userNickname || "Unknown"}
 				</span>
-				<span className="text-xs text-muted-foreground">
+				<time
+					className="text-xs text-muted-foreground"
+					dateTime={message.createdAt?.toDate().toISOString()}
+				>
 					{message.createdAt
 						? message.createdAt.toDate().toLocaleTimeString([], {
 								hour: "2-digit",
 								minute: "2-digit",
 							})
 						: "..."}
-				</span>
-			</div>
+				</time>
+			</header>
 			<p
 				className={cn(
-					"mt-1 rounded-2xl px-4 py-2 text-sm",
+					"w-fit rounded-2xl px-4 py-2.5 text-sm leading-relaxed shadow-sm",
 					isOwn
-						? "bg-primary text-primary-foreground"
-						: "bg-muted text-foreground",
+						? "rounded-tr-md bg-primary text-primary-foreground"
+						: "rounded-tl-md bg-card text-foreground ring-1 ring-border/50",
 				)}
 			>
 				{message.text}
 			</p>
-		</div>
+		</article>
 	);
 };

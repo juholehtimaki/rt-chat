@@ -1,4 +1,5 @@
 import { signOut } from "firebase/auth";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Login } from "./components/auth/Login";
 import { NicknamePrompt } from "./components/auth/NicknamePrompt";
@@ -17,8 +18,11 @@ export const App = () => {
 
 	if (loading) {
 		return (
-			<div className="flex min-h-screen items-center justify-center">
-				<div className="text-muted-foreground">Loading...</div>
+			<div className="flex min-h-screen items-center justify-center bg-background">
+				<div className="flex flex-col items-center gap-3">
+					<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+					<p className="text-sm text-muted-foreground">Loading...</p>
+				</div>
 			</div>
 		);
 	}

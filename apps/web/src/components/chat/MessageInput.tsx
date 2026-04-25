@@ -1,6 +1,5 @@
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
-import { Separator } from "@workspace/ui/components/separator";
 import { toast } from "@workspace/ui/components/sonner";
 import { Send } from "lucide-react";
 import { type SyntheticEvent, useState } from "react";
@@ -32,20 +31,25 @@ export const MessageInput = ({ channelName, onSend }: MessageInputProps) => {
 	};
 
 	return (
-		<>
-			<Separator />
-			<form onSubmit={handleSubmit} className="flex gap-2 p-4">
+		<div className="border-t bg-card/50 p-4">
+			<form onSubmit={handleSubmit} className="flex gap-3">
 				<Input
 					type="text"
 					placeholder={`Message #${channelName}`}
 					value={message}
 					onChange={(e) => setMessage(e.target.value)}
-					className="flex-1"
+					className="flex-1 bg-background transition-shadow focus:shadow-sm"
 				/>
-				<Button type="submit" size="icon" disabled={sending || !message.trim()}>
-					<Send className="h-4 w-4" />
+				<Button
+					type="submit"
+					size="icon"
+					disabled={sending || !message.trim()}
+					aria-label="Send message"
+					className="shrink-0 transition-transform hover:scale-105 active:scale-95"
+				>
+					<Send className="h-4 w-4" aria-hidden="true" />
 				</Button>
 			</form>
-		</>
+		</div>
 	);
 };

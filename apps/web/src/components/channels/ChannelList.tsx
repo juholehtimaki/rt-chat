@@ -29,9 +29,11 @@ export const ChannelList = ({
 	};
 
 	return (
-		<div className="flex h-full flex-col">
-			<div className="p-4">
-				<h2 className="mb-2 text-lg font-semibold">Channels</h2>
+		<nav aria-label="Channels" className="flex h-full flex-col">
+			<div className="p-4 pb-3">
+				<h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+					Channels
+				</h2>
 				<form onSubmit={handleCreateChannel} className="flex gap-2">
 					<Input
 						type="text"
@@ -39,37 +41,42 @@ export const ChannelList = ({
 						value={newChannelName}
 						onChange={(e) => setNewChannelName(e.target.value)}
 						disabled={creating}
-						className="h-9"
+						className="h-9 bg-background/50 transition-colors focus:bg-background"
 					/>
 					<Button
 						type="submit"
 						size="icon"
 						variant="secondary"
 						disabled={creating || !newChannelName.trim()}
-						className="h-9 w-9 shrink-0"
+						aria-label="Create channel"
+						className="h-9 w-9 shrink-0 transition-transform hover:scale-105 active:scale-95"
 					>
-						<Plus className="h-4 w-4" />
+						<Plus className="h-4 w-4" aria-hidden="true" />
 					</Button>
 				</form>
 			</div>
 			<Separator />
 			<ScrollArea className="flex-1">
-				<div className="p-2">
+				<ul className="space-y-1 p-2">
 					{channels.map((channel) => (
-						<Button
-							key={channel.id}
-							variant={
-								selectedChannel?.id === channel.id ? "secondary" : "ghost"
-							}
-							className="mb-1 w-full justify-start"
-							onClick={() => onSelectChannel(channel)}
-						>
-							<Hash className="mr-2 h-4 w-4" />
-							{channel.name}
-						</Button>
+						<li key={channel.id}>
+							<Button
+								variant={
+									selectedChannel?.id === channel.id ? "secondary" : "ghost"
+								}
+								className="w-full justify-start transition-all hover:translate-x-0.5"
+								onClick={() => onSelectChannel(channel)}
+							>
+								<Hash
+									className="mr-2 h-4 w-4 text-muted-foreground"
+									aria-hidden="true"
+								/>
+								<span className="truncate">{channel.name}</span>
+							</Button>
+						</li>
 					))}
-				</div>
+				</ul>
 			</ScrollArea>
-		</div>
+		</nav>
 	);
 };
