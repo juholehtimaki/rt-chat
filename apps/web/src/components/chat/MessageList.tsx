@@ -10,6 +10,8 @@ type MessageListProps = {
 	loadingMore: boolean;
 	scrollAreaRef: React.RefObject<HTMLDivElement | null>;
 	onScroll: (e: React.UIEvent<HTMLDivElement>) => void;
+	onDelete: (messageId: string) => Promise<void>;
+	onEdit: (messageId: string, newText: string) => Promise<void>;
 };
 
 export const MessageList = ({
@@ -19,6 +21,8 @@ export const MessageList = ({
 	loadingMore,
 	scrollAreaRef,
 	onScroll,
+	onDelete,
+	onEdit,
 }: MessageListProps) => {
 	return (
 		<ScrollArea
@@ -42,6 +46,8 @@ export const MessageList = ({
 						key={message.id}
 						message={message}
 						isOwn={message.userId === currentUserId}
+						onDelete={() => onDelete(message.id)}
+						onEdit={(newText) => onEdit(message.id, newText)}
 					/>
 				))}
 			</div>

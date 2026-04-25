@@ -7,17 +7,13 @@ import {
 	orderBy,
 	query,
 	startAfter,
+	startAt,
 	type Timestamp,
 } from "firebase/firestore";
-import {
-	useCallback,
-	useEffect,
-	useLayoutEffect,
-	useRef,
-	useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { db } from "../firebase";
 import type { Message } from "../types";
+import { useScrollManager } from "./useScrollManager";
 
 const MESSAGES_PER_PAGE = 30;
 
@@ -34,28 +30,12 @@ export const useChannelMessages = ({
 	const [hasMore, setHasMore] = useState(true);
 	const [loadingMore, setLoadingMore] = useState(false);
 	const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-	const [shouldScrollToBottom, setShouldScrollToBottom] = useState(false);
-	const [shouldPreserveScroll, setShouldPreserveScroll] = useState(false);
 	const newestTimestampRef = useRef<Timestamp | null>(null);
-	const prevScrollHeightRef = useRef<number>(0);
+	const oldestTimestampRef = useRef<Timestamp | null>(null);
 
-	// Scroll to bottom after DOM updates
-	useLayoutEffect(() => {
-		if (shouldScrollToBottom && scrollAreaRef.current) {
-			scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
-			setShouldScrollToBottom(false);
-		}
-	}, [shouldScrollToBottom, scrollAreaRef]);
-
-	// Preserve scroll position after loading older messages
-	useLayoutEffect(() => {
-		if (shouldPreserveScroll && scrollAreaRef.current) {
-			const newScrollHeight = scrollAreaRef.current.scrollHeight;
-			scrollAreaRef.current.scrollTop =
-				newScrollHeight - prevScrollHeightRef.current;
-			setShouldPreserveScroll(false);
-		}
-	}, [shouldPreserveScroll, scrollAreaRef]);
+	const { scrollToBottom, preserveScroll, saveScrollHeight } = useScrollManager(
+		{ scrollAreaRef },
+	);
 
 	// Initial load: fetch the most recent messages
 	useEffect(() => {
@@ -63,6 +43,7 @@ export const useChannelMessages = ({
 		setHasMore(true);
 		setInitialLoadComplete(false);
 		newestTimestampRef.current = null;
+		oldestTimestampRef.current = null;
 
 		const loadInitialMessages = async () => {
 			const q = query(
@@ -84,12 +65,13 @@ export const useChannelMessages = ({
 				setHasMore(snapshot.docs.length === MESSAGES_PER_PAGE);
 
 				if (messagesData.length > 0) {
+					oldestTimestampRef.current = messagesData[0].createdAt;
 					newestTimestampRef.current =
 						messagesData[messagesData.length - 1].createdAt;
 				}
 
 				setInitialLoadComplete(true);
-				setShouldScrollToBottom(true);
+				scrollToBottom();
 			} catch (err) {
 				console.error("Failed to load messages", err);
 				toast.error("Failed to load messages");
@@ -97,47 +79,65 @@ export const useChannelMessages = ({
 		};
 
 		loadInitialMessages();
-	}, [channelId]);
+	}, [channelId, scrollToBottom]);
 
-	// Real-time subscription for new messages
+	// Real-time subscription for new, modified, and deleted messages
 	useEffect(() => {
 		if (!initialLoadComplete) return;
 
-		const q = newestTimestampRef.current
+		const messagesRef = collection(db, "channels", channelId, "messages");
+		const q = oldestTimestampRef.current
 			? query(
-					collection(db, "channels", channelId, "messages"),
+					messagesRef,
 					orderBy("createdAt", "asc"),
-					startAfter(newestTimestampRef.current),
+					startAt(oldestTimestampRef.current),
 				)
-			: query(
-					collection(db, "channels", channelId, "messages"),
-					orderBy("createdAt", "asc"),
-				);
+			: query(messagesRef, orderBy("createdAt", "asc"));
+
+		const handleAdded = (message: Message) => {
+			setMessages((prev) => {
+				if (prev.some((m) => m.id === message.id)) return prev;
+				return [...prev, message];
+			});
+
+			if (message.createdAt) {
+				newestTimestampRef.current = message.createdAt;
+			}
+
+			scrollToBottom();
+		};
+
+		const handleModified = (message: Message) => {
+			setMessages((prev) =>
+				prev.map((m) => (m.id === message.id ? message : m)),
+			);
+		};
+
+		const handleRemoved = (message: Message) => {
+			setMessages((prev) => prev.filter((m) => m.id !== message.id));
+		};
 
 		const unsubscribe = onSnapshot(
 			q,
 			(snapshot) => {
-				snapshot.docChanges().forEach((change) => {
-					if (change.type === "added") {
-						// Use "estimate" to show client-side timestamp immediately
-						// instead of null while serverTimestamp() resolves
-						const newMessage = {
-							id: change.doc.id,
-							...change.doc.data({ serverTimestamps: "estimate" }),
-						} as Message;
+				for (const change of snapshot.docChanges()) {
+					const message = {
+						id: change.doc.id,
+						...change.doc.data({ serverTimestamps: "estimate" }),
+					} as Message;
 
-						setMessages((prev) => {
-							if (prev.some((m) => m.id === newMessage.id)) return prev;
-							return [...prev, newMessage];
-						});
-
-						if (newMessage.createdAt) {
-							newestTimestampRef.current = newMessage.createdAt;
-						}
-
-						setShouldScrollToBottom(true);
+					switch (change.type) {
+						case "added":
+							handleAdded(message);
+							break;
+						case "modified":
+							handleModified(message);
+							break;
+						case "removed":
+							handleRemoved(message);
+							break;
 					}
-				});
+				}
 			},
 			(err) => {
 				console.error("Failed to listen to messages", err);
@@ -146,22 +146,19 @@ export const useChannelMessages = ({
 		);
 
 		return unsubscribe;
-	}, [channelId, initialLoadComplete]);
+	}, [channelId, initialLoadComplete, scrollToBottom]);
 
-	// Load older messages
+	// Load older messages (infinite scroll upward)
 	const loadMoreMessages = useCallback(async () => {
-		if (loadingMore || !hasMore || messages.length === 0) return;
-
-		const oldestMessage = messages[0];
-		if (!oldestMessage?.createdAt) return;
+		if (loadingMore || !hasMore || !oldestTimestampRef.current) return;
 
 		setLoadingMore(true);
-		prevScrollHeightRef.current = scrollAreaRef.current?.scrollHeight ?? 0;
+		saveScrollHeight();
 
 		const q = query(
 			collection(db, "channels", channelId, "messages"),
 			orderBy("createdAt", "desc"),
-			startAfter(oldestMessage.createdAt),
+			startAfter(oldestTimestampRef.current),
 			limit(MESSAGES_PER_PAGE),
 		);
 
@@ -174,18 +171,21 @@ export const useChannelMessages = ({
 				}))
 				.reverse() as Message[];
 
+			if (olderMessages.length > 0) {
+				oldestTimestampRef.current = olderMessages[0].createdAt;
+			}
+
 			setMessages((prev) => [...olderMessages, ...prev]);
 			setHasMore(snapshot.docs.length === MESSAGES_PER_PAGE);
-			setShouldPreserveScroll(true);
+			preserveScroll();
 		} catch (err) {
 			console.error("Failed to load more messages", err);
 			toast.error("Failed to load more messages");
 		} finally {
 			setLoadingMore(false);
 		}
-	}, [loadingMore, hasMore, messages, channelId, scrollAreaRef]);
+	}, [loadingMore, hasMore, channelId, saveScrollHeight, preserveScroll]);
 
-	// Scroll handler for infinite scroll
 	const handleScroll = useCallback(
 		(e: React.UIEvent<HTMLDivElement>) => {
 			const target = e.currentTarget;
