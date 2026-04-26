@@ -33,10 +33,11 @@ export class WebsiteStack extends cdk.Stack {
 
 		const cspPolicy = [
 			"default-src 'self'",
-			"script-src 'self' https://www.gstatic.com",
+			"script-src 'self' https://www.gstatic.com https://www.googletagmanager.com https://apis.google.com",
 			"style-src 'self' 'unsafe-inline'",
 			"font-src 'self' data:",
 			"img-src 'self' data:",
+			`frame-src https://accounts.google.com https://${props.firebaseProjectId}.firebaseapp.com`,
 			[
 				"connect-src 'self'",
 				`https://${props.firebaseProjectId}.firebaseapp.com`,
@@ -47,10 +48,13 @@ export class WebsiteStack extends cdk.Stack {
 				"wss://firestore.googleapis.com",
 				"https://firebaselists.googleapis.com",
 				"https://www.google-analytics.com",
+				"https://*.google-analytics.com",
 				"https://analytics.google.com",
 				"https://firebaselogging.googleapis.com",
 				`https://${props.firebaseProjectId}.firebasestorage.app`,
 				"https://firebase.google.com",
+				"https://firebase.googleapis.com",
+				"https://firebaseinstallations.googleapis.com",
 			].join(" "),
 			"frame-ancestors 'none'",
 			"base-uri 'self'",
@@ -61,6 +65,15 @@ export class WebsiteStack extends cdk.Stack {
 			this,
 			"SecurityHeaders",
 			{
+				customHeadersBehavior: {
+					customHeaders: [
+						{
+							header: "Cross-Origin-Opener-Policy",
+							value: "same-origin-allow-popups",
+							override: true,
+						},
+					],
+				},
 				securityHeadersBehavior: {
 					contentSecurityPolicy: {
 						contentSecurityPolicy: cspPolicy,
