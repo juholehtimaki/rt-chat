@@ -90,6 +90,9 @@ importers:
       constructs:
         specifier: ^10.5.0
         version: 10.6.0
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
     devDependencies:
       aws-cdk:
         specifier: 2.1118.2

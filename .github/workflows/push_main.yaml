@@ -21,6 +21,13 @@ jobs:
     with:
       aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
       aws_region: ${{ vars.AWS_REGION }}
+      domain_name: ${{ vars.DOMAIN_NAME }}
+      hosted_zone_name: ${{ vars.HOSTED_ZONE_NAME }}
+      firebase_project_id: ${{ vars.FIREBASE_PROJECT_ID }}
+      firebase_api_key: ${{ vars.FIREBASE_API_KEY }}
+      firebase_app_id: ${{ vars.FIREBASE_APP_ID }}
+      firebase_messaging_sender_id: ${{ vars.FIREBASE_MESSAGING_SENDER_ID }}
+      firebase_measurement_id: ${{ vars.FIREBASE_MEASUREMENT_ID }}
 
   deploy:
     name: Deploy
@@ -29,5 +36,12 @@ jobs:
     with:
       aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
       aws_region: ${{ vars.AWS_REGION }}
+      domain_name: ${{ vars.DOMAIN_NAME }}
+      hosted_zone_name: ${{ vars.HOSTED_ZONE_NAME }}
+      firebase_project_id: ${{ vars.FIREBASE_PROJECT_ID }}
+      firebase_api_key: ${{ vars.FIREBASE_API_KEY }}
+      firebase_app_id: ${{ vars.FIREBASE_APP_ID }}
+      firebase_messaging_sender_id: ${{ vars.FIREBASE_MESSAGING_SENDER_ID }}
+      firebase_measurement_id: ${{ vars.FIREBASE_MEASUREMENT_ID }}
     secrets:
       FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}

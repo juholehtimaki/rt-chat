@@ -11,6 +11,7 @@ import type { Construct } from "constructs";
 type WebsiteStackProps = cdk.StackProps & {
 	domainName: string;
 	hostedZoneName: string;
+	firebaseProjectId: string;
 	certificate: acm.ICertificate;
 };
 
@@ -38,7 +39,7 @@ export class WebsiteStack extends cdk.Stack {
 			"img-src 'self' data:",
 			[
 				"connect-src 'self'",
-				"https://rt-chat-2818d.firebaseapp.com",
+				`https://${props.firebaseProjectId}.firebaseapp.com`,
 				"https://identitytoolkit.googleapis.com",
 				"https://securetoken.googleapis.com",
 				"https://www.googleapis.com",
@@ -48,7 +49,7 @@ export class WebsiteStack extends cdk.Stack {
 				"https://www.google-analytics.com",
 				"https://analytics.google.com",
 				"https://firebaselogging.googleapis.com",
-				"https://rt-chat-2818d.firebasestorage.app",
+				`https://${props.firebaseProjectId}.firebasestorage.app`,
 				"https://firebase.google.com",
 			].join(" "),
 			"frame-ancestors 'none'",
