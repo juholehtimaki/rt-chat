@@ -9,11 +9,14 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { type SyntheticEvent, useState } from "react";
-import { useNickname } from "../../hooks/useNickname";
+import { isValidNickname, useNickname } from "../../hooks/useNickname";
 
 export const NicknamePrompt = () => {
 	const [nickname, setNickname] = useState("");
 	const { saving, saveNickname } = useNickname();
+
+	const isValid = isValidNickname(nickname);
+	const showError = nickname.trim().length > 0 && !isValid;
 
 	const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -40,15 +43,19 @@ export const NicknamePrompt = () => {
 								value={nickname}
 								onChange={(e) => setNickname(e.target.value)}
 								disabled={saving}
-								minLength={1}
 								maxLength={20}
 								required
 							/>
+							{showError && (
+								<p className="text-sm text-destructive">
+									Only letters, numbers, and underscores allowed (1-20 chars)
+								</p>
+							)}
 						</div>
 						<Button
 							type="submit"
 							className="w-full"
-							disabled={saving || !nickname.trim()}
+							disabled={saving || !isValid}
 						>
 							{saving ? "Saving..." : "Continue"}
 						</Button>

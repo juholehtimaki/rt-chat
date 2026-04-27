@@ -3,7 +3,27 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // User profiles - owner-only access to protect email
+    // Nickname reservation, ensures uniqueness
+    match /nicknames/{nickname} {
+      allow read: if request.auth != null;
+
+      // Only allow create
+      allow create: if request.auth != null
+        && request.resource.data.keys().hasAll(['userId', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['userId', 'createdAt'])
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        // Validate nickname format (lowercase alphanumeric + underscore, 1-20 chars)
+        && nickname.matches('^[a-z0-9_]+$')
+        && nickname.size() >= 1
+        && nickname.size() <= 20;
+
+      // Allow owner to delete (for rollback if profile creation fails)
+      allow delete: if request.auth != null
+        && resource.data.userId == request.auth.uid;
+    }
+
+    // User profiles, owner-only access to protect email
     match /users/{userId} {
       allow read: if request.auth != null
         && request.auth.uid == userId;
@@ -13,19 +33,22 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll(['nickname', 'email', 'createdAt'])
         && request.resource.data.keys().hasOnly(['nickname', 'email', 'createdAt'])
         && request.resource.data.nickname is string
+        // Validate nickname format (alphanumeric + underscore, 1-20 chars)
+        && request.resource.data.nickname.matches('^[a-zA-Z0-9_]+$')
         && request.resource.data.nickname.size() >= 1
         && request.resource.data.nickname.size() <= 20
         && request.resource.data.email is string
         && request.resource.data.email.size() >= 1
-        && request.resource.data.createdAt == request.time;
-
+        && request.resource.data.createdAt == request.time
+        // Verify nickname was claimed by this user
+        && exists(/databases/$(database)/documents/nicknames/$(request.resource.data.nickname.lower()))
+        && get(/databases/$(database)/documents/nicknames/$(request.resource.data.nickname.lower())).data.userId == request.auth.uid;
+        
       allow update: if request.auth != null
         && request.auth.uid == userId
         && request.resource.data.keys().hasOnly(['nickname', 'email', 'createdAt'])
-        && request.resource.data.nickname is string
-        && request.resource.data.nickname.size() >= 1
-        && request.resource.data.nickname.size() <= 20
         // Prevent changing immutable fields
+        && request.resource.data.nickname == resource.data.nickname
         && request.resource.data.email == resource.data.email
         && request.resource.data.createdAt == resource.data.createdAt;
 

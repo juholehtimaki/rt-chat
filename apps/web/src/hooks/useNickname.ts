@@ -1,43 +1,71 @@
 import { toast } from "@workspace/ui/components/sonner";
-import {
-	doc,
-	getDoc,
-	serverTimestamp,
-	setDoc,
-	updateDoc,
-} from "firebase/firestore";
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useState } from "react";
 import { db } from "../firebase";
 import { useAuthStore } from "../stores/authStore";
+
+const NICKNAME_REGEX = /^[a-zA-Z0-9_]+$/;
+
+export const isValidNickname = (nickname: string): boolean => {
+	const trimmed = nickname.trim();
+	return (
+		trimmed.length >= 1 && trimmed.length <= 20 && NICKNAME_REGEX.test(trimmed)
+	);
+};
 
 export const useNickname = () => {
 	const { user, getProfile: refreshProfile } = useAuthStore();
 	const [saving, setSaving] = useState(false);
 
+	const checkNicknameAvailable = async (nickname: string): Promise<boolean> => {
+		const nicknameDoc = await getDoc(
+			doc(db, "nicknames", nickname.toLowerCase()),
+		);
+		return !nicknameDoc.exists();
+	};
+
 	const saveNickname = async (nickname: string) => {
-		if (!nickname.trim() || !user) return;
+		const trimmedNickname = nickname.trim();
+		if (!trimmedNickname || !user) return;
 
 		setSaving(true);
 
 		try {
+			// Check if user already has a profile
 			const userRef = doc(db, "users", user.uid);
 			const userDoc = await getDoc(userRef);
 
 			if (userDoc.exists()) {
-				await updateDoc(userRef, { nickname: nickname.trim() });
-			} else {
-				await setDoc(userRef, {
-					nickname: nickname.trim(),
-					email: user.email,
-					createdAt: serverTimestamp(),
-				});
+				toast.error("Nickname cannot be changed");
+				return;
 			}
 
+			// Check if nickname is available
+			const isAvailable = await checkNicknameAvailable(trimmedNickname);
+			if (!isAvailable) {
+				toast.error("Nickname is already taken");
+				return;
+			}
+
+			const nicknameRef = doc(db, "nicknames", trimmedNickname.toLowerCase());
+
+			// In proper app, we would use a transaction (batch in Firestore) here to ensure atomicity but that requires Cloud Functions which is behind payment method
+
+			await setDoc(nicknameRef, {
+				userId: user.uid,
+				createdAt: serverTimestamp(),
+			});
+
+			await setDoc(userRef, {
+				nickname: trimmedNickname,
+				email: user.email,
+				createdAt: serverTimestamp(),
+			});
 			await refreshProfile();
-			toast.success("Nickname updated");
+			toast.success("Nickname saved");
 		} catch (err) {
-			console.error("Failed to update nickname", err);
-			toast.error("Failed to update nickname");
+			console.error("Failed to save nickname", err);
+			toast.error("Failed to save nickname");
 		} finally {
 			setSaving(false);
 		}
