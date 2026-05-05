@@ -7,7 +7,7 @@ import {
 	query,
 	serverTimestamp,
 } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { db } from "../firebase";
 import { useAuthStore } from "../stores/authStore";
 import type { Channel } from "../types";
@@ -15,6 +15,7 @@ import type { Channel } from "../types";
 export const useChannels = () => {
 	const user = useAuthStore((state) => state.user);
 	const [channels, setChannels] = useState<Channel[]>([]);
+	const [loading, setLoading] = useState(true);
 	const [creating, setCreating] = useState(false);
 
 	useEffect(() => {
@@ -27,33 +28,38 @@ export const useChannels = () => {
 					...doc.data(),
 				})) as Channel[];
 				setChannels(channelsData);
+				setLoading(false);
 			},
 			(err) => {
 				console.error("Failed to listen to channels", err);
 				toast.error("Failed to load channels");
+				setLoading(false);
 			},
 		);
 		return unsubscribe;
 	}, []);
 
-	const createChannel = async (name: string) => {
-		if (!name || !user) return;
+	const createChannel = useCallback(
+		async (name: string) => {
+			if (!name || !user) return;
 
-		setCreating(true);
-		try {
-			await addDoc(collection(db, "channels"), {
-				name,
-				createdAt: serverTimestamp(),
-				createdBy: user.uid,
-			});
-			toast.success(`Channel #${name} created`);
-		} catch (err) {
-			console.error("Failed to create channel", err);
-			toast.error("Failed to create channel");
-		} finally {
-			setCreating(false);
-		}
-	};
+			setCreating(true);
+			try {
+				await addDoc(collection(db, "channels"), {
+					name,
+					createdAt: serverTimestamp(),
+					createdBy: user.uid,
+				});
+				toast.success(`Channel #${name} created`);
+			} catch (err) {
+				console.error("Failed to create channel", err);
+				toast.error("Failed to create channel");
+			} finally {
+				setCreating(false);
+			}
+		},
+		[user],
+	);
 
-	return { channels, creating, createChannel };
+	return { channels, loading, creating, createChannel };
 };
