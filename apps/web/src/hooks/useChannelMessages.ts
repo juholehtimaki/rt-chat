@@ -240,6 +240,7 @@ export const useChannelMessages = ({
 			try {
 				await updateDoc(doc(db, "channels", channelId, "messages", messageId), {
 					text: newText,
+					editedAt: serverTimestamp(),
 				});
 			} catch (err) {
 				console.error("Failed to edit message", err);

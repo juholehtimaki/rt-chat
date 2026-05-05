@@ -14,6 +14,7 @@ export type Message = {
 	userNickname: string;
 	createdAt: Timestamp;
 	channelId: string;
+	editedAt?: Timestamp;
 };
 
 export type UserProfile = {

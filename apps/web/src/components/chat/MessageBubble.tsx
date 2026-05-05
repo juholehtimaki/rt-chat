@@ -81,6 +81,9 @@ export const MessageBubble = ({
 							})
 						: "..."}
 				</time>
+				{message.editedAt && (
+					<span className="text-xs text-muted-foreground">(edited)</span>
+				)}
 				{isOwn && !isEditing && (
 					<div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
 						<Button
