@@ -43,14 +43,6 @@ service cloud.firestore {
         // Verify nickname was claimed by this user
         && exists(/databases/$(database)/documents/nicknames/$(request.resource.data.nickname.lower()))
         && get(/databases/$(database)/documents/nicknames/$(request.resource.data.nickname.lower())).data.userId == request.auth.uid;
-        
-      allow update: if request.auth != null
-        && request.auth.uid == userId
-        && request.resource.data.keys().hasOnly(['nickname', 'email', 'createdAt'])
-        // Prevent changing immutable fields
-        && request.resource.data.nickname == resource.data.nickname
-        && request.resource.data.email == resource.data.email
-        && request.resource.data.createdAt == resource.data.createdAt;
 
       allow delete: if request.auth != null
         && request.auth.uid == userId;
@@ -71,13 +63,10 @@ service cloud.firestore {
 
       allow update: if request.auth != null
         && request.auth.uid == resource.data.createdBy
-        && request.resource.data.keys().hasOnly(['name', 'createdBy', 'createdAt'])
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name'])
         && request.resource.data.name is string
         && request.resource.data.name.size() >= 1
-        && request.resource.data.name.size() <= 100
-        // Prevent changing immutable fields
-        && request.resource.data.createdBy == resource.data.createdBy
-        && request.resource.data.createdAt == resource.data.createdAt;
+        && request.resource.data.name.size() <= 100;
 
       allow delete: if request.auth != null
         && request.auth.uid == resource.data.createdBy;
@@ -100,15 +89,11 @@ service cloud.firestore {
 
         allow update: if request.auth != null
           && request.auth.uid == resource.data.userId
-          && request.resource.data.keys().hasOnly(['text', 'userId', 'userNickname', 'createdAt', 'channelId'])
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt'])
           && request.resource.data.text is string
           && request.resource.data.text.size() >= 1
           && request.resource.data.text.size() <= 5000
-          // Prevent changing immutable fields
-          && request.resource.data.userId == resource.data.userId
-          && request.resource.data.userNickname == resource.data.userNickname
-          && request.resource.data.channelId == resource.data.channelId
-          && request.resource.data.createdAt == resource.data.createdAt;
+          && request.resource.data.editedAt == request.time;
 
         allow delete: if request.auth != null
           && request.auth.uid == resource.data.userId;
