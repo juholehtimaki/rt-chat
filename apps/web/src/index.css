@@ -3,3 +3,6 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 @import "@workspace/ui/styles/globals.css";
+
+/* Required for CI to ensure that Tailwind scans the UI package for classes */
+@source "../../../packages/ui/src/**/*.{ts,tsx}";
