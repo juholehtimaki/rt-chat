@@ -16,7 +16,7 @@ type AuthState = {
 	getProfile: () => Promise<void>;
 };
 
-const getProfile = async (uid: string) => {
+const fetchProfile = async (uid: string) => {
 	try {
 		const docSnap = await getDoc(doc(db, "users", uid));
 		if (docSnap.exists()) {
@@ -44,7 +44,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 	getProfile: async () => {
 		const { user } = get();
 		if (user) {
-			await getProfile(user.uid);
+			await fetchProfile(user.uid);
 		}
 	},
 }));
@@ -52,7 +52,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 onAuthStateChanged(auth, async (user) => {
 	if (user) {
 		useAuthStore.setState({ user, loading: true });
-		await getProfile(user.uid);
+		await fetchProfile(user.uid);
 	} else {
 		useAuthStore.setState({ user, profile: null });
 	}

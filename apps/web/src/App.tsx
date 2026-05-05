@@ -26,6 +26,7 @@ export const App = () => {
 			</div>
 		);
 	}
+
 	if (!user) return <Login />;
 	if (!profile) return <NicknamePrompt />;
 
