@@ -8,6 +8,7 @@ import {
 	serverTimestamp,
 } from "firebase/firestore";
 import { useCallback, useEffect, useState } from "react";
+import { COLLECTIONS } from "../constants/firestore";
 import { db } from "../firebase";
 import { useAuthStore } from "../stores/authStore";
 import type { Channel } from "../types";
@@ -19,7 +20,10 @@ export const useChannels = () => {
 	const [creating, setCreating] = useState(false);
 
 	useEffect(() => {
-		const q = query(collection(db, "channels"), orderBy("createdAt", "desc"));
+		const q = query(
+			collection(db, COLLECTIONS.CHANNELS),
+			orderBy("createdAt", "desc"),
+		);
 		const unsubscribe = onSnapshot(
 			q,
 			(snapshot) => {
@@ -45,7 +49,7 @@ export const useChannels = () => {
 
 			setCreating(true);
 			try {
-				await addDoc(collection(db, "channels"), {
+				await addDoc(collection(db, COLLECTIONS.CHANNELS), {
 					name,
 					createdAt: serverTimestamp(),
 					createdBy: user.uid,

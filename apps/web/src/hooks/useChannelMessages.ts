@@ -15,13 +15,15 @@ import {
 	type Timestamp,
 	updateDoc,
 } from "firebase/firestore";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { COLLECTIONS } from "../constants/firestore";
 import { db } from "../firebase";
 import { useAuthStore } from "../stores/authStore";
 import type { Message } from "../types";
 import { useScrollManager } from "./useScrollManager";
 
 const MESSAGES_PER_PAGE = 30;
+const SCROLL_LOAD_THRESHOLD = 100;
 
 type UseChannelMessagesOptions = {
 	channelId: string;
@@ -37,8 +39,9 @@ export const useChannelMessages = ({
 	const [hasMore, setHasMore] = useState(true);
 	const [loadingMore, setLoadingMore] = useState(false);
 	const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-	const newestTimestampRef = useRef<Timestamp | null>(null);
-	const oldestTimestampRef = useRef<Timestamp | null>(null);
+	const [oldestTimestamp, setOldestTimestamp] = useState<Timestamp | null>(
+		null,
+	);
 
 	const { scrollToBottom, preserveScroll, saveScrollHeight } = useScrollManager(
 		{ scrollAreaRef },
@@ -49,12 +52,11 @@ export const useChannelMessages = ({
 		setMessages([]);
 		setHasMore(true);
 		setInitialLoadComplete(false);
-		newestTimestampRef.current = null;
-		oldestTimestampRef.current = null;
+		setOldestTimestamp(null);
 
 		const loadInitialMessages = async () => {
 			const q = query(
-				collection(db, "channels", channelId, "messages"),
+				collection(db, COLLECTIONS.CHANNELS, channelId, COLLECTIONS.MESSAGES),
 				orderBy("createdAt", "desc"),
 				limit(MESSAGES_PER_PAGE),
 			);
@@ -72,9 +74,7 @@ export const useChannelMessages = ({
 				setHasMore(snapshot.docs.length === MESSAGES_PER_PAGE);
 
 				if (messagesData.length > 0) {
-					oldestTimestampRef.current = messagesData[0].createdAt;
-					newestTimestampRef.current =
-						messagesData[messagesData.length - 1].createdAt;
+					setOldestTimestamp(messagesData[0].createdAt);
 				}
 
 				setInitialLoadComplete(true);
@@ -92,12 +92,17 @@ export const useChannelMessages = ({
 	useEffect(() => {
 		if (!initialLoadComplete) return;
 
-		const messagesRef = collection(db, "channels", channelId, "messages");
-		const q = oldestTimestampRef.current
+		const messagesRef = collection(
+			db,
+			COLLECTIONS.CHANNELS,
+			channelId,
+			COLLECTIONS.MESSAGES,
+		);
+		const q = oldestTimestamp
 			? query(
 					messagesRef,
 					orderBy("createdAt", "asc"),
-					startAt(oldestTimestampRef.current),
+					startAt(oldestTimestamp),
 				)
 			: query(messagesRef, orderBy("createdAt", "asc"));
 
@@ -106,12 +111,6 @@ export const useChannelMessages = ({
 				if (prev.some((m) => m.id === message.id)) return prev;
 				return [...prev, message];
 			});
-
-			if (message.createdAt) {
-				newestTimestampRef.current = message.createdAt;
-			}
-
-			scrollToBottom();
 		};
 
 		const handleModified = (message: Message) => {
@@ -153,19 +152,19 @@ export const useChannelMessages = ({
 		);
 
 		return unsubscribe;
-	}, [channelId, initialLoadComplete, scrollToBottom]);
+	}, [channelId, initialLoadComplete, oldestTimestamp]);
 
 	// Load older messages (infinite scroll upward)
 	const loadMoreMessages = useCallback(async () => {
-		if (loadingMore || !hasMore || !oldestTimestampRef.current) return;
+		if (loadingMore || !hasMore || !oldestTimestamp) return;
 
 		setLoadingMore(true);
 		saveScrollHeight();
 
 		const q = query(
-			collection(db, "channels", channelId, "messages"),
+			collection(db, COLLECTIONS.CHANNELS, channelId, COLLECTIONS.MESSAGES),
 			orderBy("createdAt", "desc"),
-			startAfter(oldestTimestampRef.current),
+			startAfter(oldestTimestamp),
 			limit(MESSAGES_PER_PAGE),
 		);
 
@@ -179,7 +178,7 @@ export const useChannelMessages = ({
 				.reverse() as Message[];
 
 			if (olderMessages.length > 0) {
-				oldestTimestampRef.current = olderMessages[0].createdAt;
+				setOldestTimestamp(olderMessages[0].createdAt);
 			}
 
 			setMessages((prev) => [...olderMessages, ...prev]);
@@ -191,12 +190,19 @@ export const useChannelMessages = ({
 		} finally {
 			setLoadingMore(false);
 		}
-	}, [loadingMore, hasMore, channelId, saveScrollHeight, preserveScroll]);
+	}, [
+		loadingMore,
+		hasMore,
+		oldestTimestamp,
+		channelId,
+		saveScrollHeight,
+		preserveScroll,
+	]);
 
 	const handleScroll = useCallback(
 		(e: React.UIEvent<HTMLDivElement>) => {
 			const target = e.currentTarget;
-			if (target.scrollTop < 100 && hasMore && !loadingMore) {
+			if (target.scrollTop < SCROLL_LOAD_THRESHOLD && hasMore && !loadingMore) {
 				loadMoreMessages();
 			}
 		},
@@ -208,13 +214,16 @@ export const useChannelMessages = ({
 			if (!user || !profile) return;
 
 			try {
-				await addDoc(collection(db, "channels", channelId, "messages"), {
-					text,
-					userId: user.uid,
-					userNickname: profile.nickname,
-					createdAt: serverTimestamp(),
-					channelId,
-				});
+				await addDoc(
+					collection(db, COLLECTIONS.CHANNELS, channelId, COLLECTIONS.MESSAGES),
+					{
+						text,
+						userId: user.uid,
+						userNickname: profile.nickname,
+						createdAt: serverTimestamp(),
+						channelId,
+					},
+				);
 			} catch (err) {
 				console.error("Failed to send message", err);
 				toast.error("Failed to send message");
@@ -226,7 +235,15 @@ export const useChannelMessages = ({
 	const deleteMessage = useCallback(
 		async (messageId: string) => {
 			try {
-				await deleteDoc(doc(db, "channels", channelId, "messages", messageId));
+				await deleteDoc(
+					doc(
+						db,
+						COLLECTIONS.CHANNELS,
+						channelId,
+						COLLECTIONS.MESSAGES,
+						messageId,
+					),
+				);
 			} catch (err) {
 				console.error("Failed to delete message", err);
 				toast.error("Failed to delete message");
@@ -238,10 +255,19 @@ export const useChannelMessages = ({
 	const editMessage = useCallback(
 		async (messageId: string, newText: string) => {
 			try {
-				await updateDoc(doc(db, "channels", channelId, "messages", messageId), {
-					text: newText,
-					editedAt: serverTimestamp(),
-				});
+				await updateDoc(
+					doc(
+						db,
+						COLLECTIONS.CHANNELS,
+						channelId,
+						COLLECTIONS.MESSAGES,
+						messageId,
+					),
+					{
+						text: newText,
+						editedAt: serverTimestamp(),
+					},
+				);
 			} catch (err) {
 				console.error("Failed to edit message", err);
 				toast.error("Failed to edit message");
