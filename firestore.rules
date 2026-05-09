@@ -17,10 +17,6 @@ service cloud.firestore {
         && nickname.matches('^[a-z0-9_]+$')
         && nickname.size() >= 1
         && nickname.size() <= 20;
-
-      // Allow owner to delete (for rollback if profile creation fails)
-      allow delete: if request.auth != null
-        && resource.data.userId == request.auth.uid;
     }
 
     // User profiles, owner-only access to protect email
