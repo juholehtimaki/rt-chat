@@ -3,6 +3,7 @@ import type { User } from "firebase/auth";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { create } from "zustand";
+import { COLLECTIONS } from "../constants/firestore";
 import { auth, db } from "../firebase";
 import type { UserProfile } from "../types";
 
@@ -18,7 +19,7 @@ type AuthState = {
 
 const fetchProfile = async (uid: string) => {
 	try {
-		const docSnap = await getDoc(doc(db, "users", uid));
+		const docSnap = await getDoc(doc(db, COLLECTIONS.USERS, uid));
 		if (docSnap.exists()) {
 			useAuthStore.setState({
 				profile: { id: docSnap.id, ...docSnap.data() } as UserProfile,

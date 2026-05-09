@@ -1,6 +1,7 @@
 import { toast } from "@workspace/ui/components/sonner";
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useCallback, useState } from "react";
+import { COLLECTIONS } from "../constants/firestore";
 import { db } from "../firebase";
 import { useAuthStore } from "../stores/authStore";
 
@@ -20,7 +21,7 @@ export const useNickname = () => {
 	const checkNicknameAvailable = useCallback(
 		async (nickname: string): Promise<boolean> => {
 			const nicknameDoc = await getDoc(
-				doc(db, "nicknames", nickname.toLowerCase()),
+				doc(db, COLLECTIONS.NICKNAMES, nickname.toLowerCase()),
 			);
 			return !nicknameDoc.exists();
 		},
@@ -36,7 +37,7 @@ export const useNickname = () => {
 
 			try {
 				// Check if user already has a profile
-				const userRef = doc(db, "users", user.uid);
+				const userRef = doc(db, COLLECTIONS.USERS, user.uid);
 				const userDoc = await getDoc(userRef);
 
 				if (userDoc.exists()) {
@@ -53,7 +54,11 @@ export const useNickname = () => {
 					return;
 				}
 
-				const nicknameRef = doc(db, "nicknames", trimmedNickname.toLowerCase());
+				const nicknameRef = doc(
+					db,
+					COLLECTIONS.NICKNAMES,
+					trimmedNickname.toLowerCase(),
+				);
 
 				// In proper app, we would use a transaction (batch in Firestore) here to ensure atomicity but that requires Cloud Functions which is behind payment method
 				await setDoc(nicknameRef, {
